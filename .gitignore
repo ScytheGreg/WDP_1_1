@@ -1,0 +1,10 @@
+# Ignoruj wszystko
+*
+
+# Ale nie katalogi (bo wtedy git nie zobaczy .gitignore)
+!*/
+
+# Nie ignoruj plików .c
+!*.c
+!*task.txt
+!.gitignore

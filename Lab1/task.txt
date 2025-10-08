@@ -1,0 +1,6 @@
+Zadanie
+Na dzisiejszym laboratorium będzie tylko jedno zadanie. Zadania w tym i w przyszłym tygodniu nie liczą się do oceny.
+
+Zadanie: Niech t będzie ciągiem n liczb całkowitych t[0],...,t[n-1]. Powiemy, że spójny fragment tego ciągu t[i],...,t[j] jest dzielny, jeśli każda z liczb t[i],...,t[j-1] dzieli liczbę t[j]. Długością takiego fragmentu nazywamy liczbę j-i+1. Napisz program, który wczyta dodatnią liczbę całkowitą n i następnie ciąg n liczb całkowitych t[0],...,t[n-1] typu int, a następnie wypisze długość najdłuższego dzielnego fragmentu tablicy t.
+
+Przykład: Dla danych n=8 i t=10,2,4,6,4,12,4,8 wynikiem jest 5, co odpowiada dzielnemu fragmentowi 2,4,6,4,12. 
