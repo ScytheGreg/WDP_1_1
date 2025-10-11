@@ -1,7 +1,3 @@
-// Sprawdzić sinol-make
-// Dobre komentarze w miejscach, które są nieoczywiste i ułatwiają przeczytanie programu
-
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
