@@ -8,3 +8,6 @@
 !*.c
 !*task.txt
 !.gitignore
+!*Makefile
+!*.h
+

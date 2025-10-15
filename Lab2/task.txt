@@ -1,0 +1,5 @@
+Zadanie. Rozważmy dwuosobową Grę w Skracanie. Gracz dostaje dwie względnie pierwsze liczby całkowite dodatnie. W swoim ruchu gracz odejmuje od jednej z nich 1 (o ile wynik pozostanie dodatni), po czym skraca nowopowstałe liczby tak, aby znów stały się względnie pierwsze. Przykładowo, w jednym ruchu z pary (5,2) można przejść do pary (2,1) albo do pary (5,1). Otrzymaną nową parę liczb gracz pierwszy przekazuje drugiemu, po czym i on wykonuje swój ruch itd. Przegrywa ten z graczy, który nie może wykonać już żadnego ruchu (czyli dostanie parę (1,1)). Zaimplementuj funkcję graj, która w optymalny sposób gra w Grę w Skracanie.
+
+Argumentami funkcji graj są dwie względnie pierwsze liczby całkowite dodatnie a i b. Wynikiem funkcji powinno być: 1, jeśli należy zmniejszyć a o jeden; 2, jeśli należy zmniejszyć b o jeden; 0, gdy a = b = 1. Napisz bibliotekę gra.c, która implementuje załączony plik nagłówkowy gra.h.
+
+Zaimplementuj także prosty program ocen.c, który gra w grę z użyciem podanej funkcji. Na początku programu ocen.c załaduj plik nagłówkowy:
