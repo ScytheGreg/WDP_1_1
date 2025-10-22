@@ -3,11 +3,25 @@
 
 #include <stdbool.h>
 
+typedef struct Q{ // Różnica ciągu arytmetycznego, stała dla całego zadania.
+  int wartosc;
+} Q;
+
+typedef struct ciag_ary {
+
+  int r;  // Reszta z dzielenia przez q
+  int first; // Pierszy element ciągu
+  int last; // Osatni element ciągu.
+} ciag_ary;
+
 typedef struct zbior_ary {
   /* do uzupelnienia */
-  int k; 
+  ciag_ary* t; // Tablica parami rozłącznych ciągów, która ma możliwie najmniej elementów.
+  unsigned Ary_q; // Rozmiar 't' i jednocześnie liczba Ary_q zdefiniowana w zadaniu.
 
 } zbior_ary;
+
+
 
 /* Najlepiej nie modyfikowac nic ponizej. */
 
