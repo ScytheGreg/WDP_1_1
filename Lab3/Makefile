@@ -1,5 +1,5 @@
 ocen.e: zbior_ary.o ocen.o
-	gcc zbior_ary.o ocen.o -o ocen.e
+	gcc @opcje zbior_ary.o ocen.o -o ocen.e
 
 ocen.o: ocen.c zbior_ary.h
 	gcc -c @opcje ocen.c -o ocen.o
