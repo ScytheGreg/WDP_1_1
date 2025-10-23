@@ -9,4 +9,6 @@ int main() {
 
   zbior_ary B = singleton(7);
   wypisz_zbior(B);
+
+  wypisz_zbior(suma(A, B));
 }
