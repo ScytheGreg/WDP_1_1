@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
 //Zmienna globalna (bez niej nie da się zrobić zadania)
 
 Q_struct Q;
@@ -97,95 +98,76 @@ void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
     wynik->t_sum[ost_elem] = A;
 }
 
-// sumowalne_ciagi Min(sumowalne_ciagi A, sumowalne_ciagi B){
-//     if(A.first <= B.first)
-//         return A;
-//     return B;
+// void przypisz_ciag(ciag_ary a, sumowalne_ciagi* suma){
+//     suma -> rozmiar ++;
+//     unsigned ost_elem = suma -> rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy
+//     suma -> t_ciag[ost_elem] = a;
 // }
 
-// sumowalne_ciagi Max(sumowalne_ciagi A, sumowalne_ciagi B){
-//     if(A.first >= )
-// }
+typedef struct punkt{
+    int wartosc;
+    bool czy_A;
+    bool poczatek;
+} punkt;
 
-ciag_ary stworz_ciag(sumowalne_ciagi A, unsigned* wsk_A, sumowalne_ciagi B, unsigned* wsk_B){
+void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
+    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
+        punkt poczatek = {A.t_ciag[i].first, czy_A, true};
+        *tab_A[2 * i] = poczatek;
 
-    ciag_z_A = A.t_ciag[*wsk_A];
-    ciag_z_B = B.t_ciag[*wsk_B];
-
-    if(ciag_z_A.first > ciag_z_B.first)
-        return stworz_ciag(B, wsk_B, A, wsk_A); //  W razie potrzeby zamieniamy miejscami
-
-    ciag_ary ciag; //Tworzymy ciąg, który zwrócimy.
-
-    ciag.first = ciag_z_A.first;
-
-    bool idziemy_po_B = true;
-    bool idziemy_po_A = false
-    int nastepny = ciag_z_B[*wsk_B].first;
-    int granica = ciag_z_A.last + Q.wartosc;
-
-    while(granica >= następny){
-        int przyszla_granica = granica;
-        while(granica >= nastepny){
-            if(idziemy_po_B && *wsk_B < B.rozmiar){
-                *wsk_B++;
-                nastepny = B.t_ciag[*wsk_B].first;
-                przyszla_granica = B.t_ciag[*wsk_B - 1].last;
-            }
-            else if(idziemy_po_A && *wsk_A < A.rozmiar){
-                *wsk_A++;
-                nastepny = A.t_ciag[*wsk_A].first;
-                przyszla_granica = A.t_ciag[*wsk_A - 1].last;
-            }
-            else break; //???
-        }
-        // Teraz granica < następny
-        granica = przyszla_granica;
-
-        idziemy_po_A = !idziemy_po_A;
-        idziemy_po_B = !idziemy_po_B; // Czy to działa?
-
-        if(idziemy_po_A && *wsk_A < A.rozmiar){
-            *wsk_A++;
-            nastepny = A.t_ciag[*wsk_A].first;
-        }
-        else if(idziemy_po_B && *wsk_B < B.rozmiar){
-            *wsk_B++;
-            nastepny = B.t_ciag[*wsk_B].first;
-        }
+        punkt koniec = {A.t_ciag[i].last, czy_A, false};
+        *tab_A[2 * i + 1] = koniec;
     }
-    ciag.last = granica;
-    return ciag;
 }
 
-void przypisz_ciag(ciag_ary a, sumowalne_ciagi* suma){
-    suma -> rozmiar ++;
-    unsigned ost_elem = suma -> rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy
-    suma -> t_ciag[ost_elem] = a;
+void dodaj_punkt(punkt** tab, unsigned* ind, unsigned* wsk_A, punkt wartosc){
+    (*tab)[*ind] = wartosc;
+    (*wsk_A)++;
+    (*ind)++;
+}
+
+void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
+    // Ta funkcja sortuje punkty z A i B do tablicy.
+
+    unsigned ind_tab = 0;
+
+    //Przepisujemy A i B do tablic punktów
+    punkt* tab_A = (punkt*) malloc (A.rozmiar * 2 * sizeof(punkt));
+    przepisz_punkt(A, &tab_A, true);
+    punkt* tab_B = (punkt*) malloc (B.rozmiar * 2 * sizeof(punkt));
+    przepisz_punkt(B, &tab_B, false);
+
+    unsigned  wsk_A = (unsigned) -1;
+    unsigned  wsk_B = (unsigned) -1;
+    while(wsk_A < A.rozmiar * 2 || wsk_B < B.rozmiar * 2){
+        if(wsk_A >= A.rozmiar * 2)
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B]);
+        
+        else if(wsk_B >= B.rozmiar * 2)
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A]);
+        
+        else if(tab_A[wsk_A + 1].wartosc > tab_B[wsk_B + 1].wartosc)
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B]);
+        
+        else
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A]);
+    }
 }
 
 sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     // Ta funkcja łączy dwa sumowalne ciągi w jeden zapisując go w wyniku.
+    
 
     // Tworzymy tablicę z od razu zaalokowaną pamięcią.
     // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
     sumowalne_ciagi suma  = pusty_sumowalny(A.rozmiar + B.rozmiar, A.reszta);
 
-    unsigned wsk_A = 0;
-    unsigned wsk_B = 0;
+    // Tablica, która będzie przechowywała posortowane początki i końce A i B
+    punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
 
-    while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
-        ciag_ary poloczony_ciag = stworz_ciag(A, &wsk_A, B, &wsk_B);
-        przypisz_ciag(poloczony_ciag, &suma);
-    }
-    while(wsk_A < A.rozmiar){
-        przypisz_ciag(A.t_ciag[wsk_A], &suma);
-        wsk_A++;
-    }
-    while(wsk_B < B.rozmiar){
-        przypisz_ciag(B.t_ciag[wsk_B], &suma);
-        wsk_B++;
-    }
+    posortuj(A, B, &sort_punkt);
+    
+    free(sort_punkt);
     return suma;
 }
 
