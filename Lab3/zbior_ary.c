@@ -97,12 +97,96 @@ void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
     wynik->t_sum[ost_elem] = A;
 }
 
-void polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, zbior_ary* wynik){
+// sumowalne_ciagi Min(sumowalne_ciagi A, sumowalne_ciagi B){
+//     if(A.first <= B.first)
+//         return A;
+//     return B;
+// }
+
+// sumowalne_ciagi Max(sumowalne_ciagi A, sumowalne_ciagi B){
+//     if(A.first >= )
+// }
+
+ciag_ary stworz_ciag(sumowalne_ciagi A, unsigned* wsk_A, sumowalne_ciagi B, unsigned* wsk_B){
+
+    ciag_z_A = A.t_ciag[*wsk_A];
+    ciag_z_B = B.t_ciag[*wsk_B];
+
+    if(ciag_z_A.first > ciag_z_B.first)
+        return stworz_ciag(B, wsk_B, A, wsk_A); //  W razie potrzeby zamieniamy miejscami
+
+    ciag_ary ciag; //Tworzymy ciąg, który zwrócimy.
+
+    ciag.first = ciag_z_A.first;
+
+    bool idziemy_po_B = true;
+    bool idziemy_po_A = false
+    int nastepny = ciag_z_B[*wsk_B].first;
+    int granica = ciag_z_A.last + Q.wartosc;
+
+    while(granica >= następny){
+        int przyszla_granica = granica;
+        while(granica >= nastepny){
+            if(idziemy_po_B && *wsk_B < B.rozmiar){
+                *wsk_B++;
+                nastepny = B.t_ciag[*wsk_B].first;
+                przyszla_granica = B.t_ciag[*wsk_B - 1].last;
+            }
+            else if(idziemy_po_A && *wsk_A < A.rozmiar){
+                *wsk_A++;
+                nastepny = A.t_ciag[*wsk_A].first;
+                przyszla_granica = A.t_ciag[*wsk_A - 1].last;
+            }
+            else break; //???
+        }
+        // Teraz granica < następny
+        granica = przyszla_granica;
+
+        idziemy_po_A = !idziemy_po_A;
+        idziemy_po_B = !idziemy_po_B; // Czy to działa?
+
+        if(idziemy_po_A && *wsk_A < A.rozmiar){
+            *wsk_A++;
+            nastepny = A.t_ciag[*wsk_A].first;
+        }
+        else if(idziemy_po_B && *wsk_B < B.rozmiar){
+            *wsk_B++;
+            nastepny = B.t_ciag[*wsk_B].first;
+        }
+    }
+    ciag.last = granica;
+    return ciag;
+}
+
+void przypisz_ciag(ciag_ary a, sumowalne_ciagi* suma){
+    suma -> rozmiar ++;
+    unsigned ost_elem = suma -> rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy
+    suma -> t_ciag[ost_elem] = a;
+}
+
+sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     // Ta funkcja łączy dwa sumowalne ciągi w jeden zapisując go w wyniku.
 
     // Tworzymy tablicę z od razu zaalokowaną pamięcią.
     // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
     sumowalne_ciagi suma  = pusty_sumowalny(A.rozmiar + B.rozmiar, A.reszta);
+
+    unsigned wsk_A = 0;
+    unsigned wsk_B = 0;
+
+    while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
+        ciag_ary poloczony_ciag = stworz_ciag(A, &wsk_A, B, &wsk_B);
+        przypisz_ciag(poloczony_ciag, &suma);
+    }
+    while(wsk_A < A.rozmiar){
+        przypisz_ciag(A.t_ciag[wsk_A], &suma);
+        wsk_A++;
+    }
+    while(wsk_B < B.rozmiar){
+        przypisz_ciag(B.t_ciag[wsk_B], &suma);
+        wsk_B++;
+    }
+    return suma;
 }
 
 // Daje w wyniku zbior reprezentujacy teoriomnogosciowa sume zbiorow A i B.
@@ -120,7 +204,8 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
         int reszta_B = B.t_sum[wsk_B].reszta;
 
         if(reszta_A == reszta_B){
-            polacz_sumowalne(A.t_sum[wsk_A], B.t_sum[wsk_B], &wynik);
+            sumowalne_ciagi poloczne_ciagi = polacz_sumowalne(A.t_sum[wsk_A], B.t_sum[wsk_B]);
+            dodaj_sumowalne(poloczne_ciagi, &wynik);
             wsk_A++;
             wsk_B++;
         }
@@ -134,6 +219,14 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
             dodaj_sumowalne(B.t_sum[wsk_B], &wynik);
             wsk_B++;
         }
+    }
+    while(wsk_A < A.rozmiar){
+        dodaj_sumowalne(A.t_sum[wsk_A], &wynik);
+        wsk_A++;
+    }
+    while(wsk_B < B.rozmiar){
+        dodaj_sumowalne(B.t_sum[wsk_B], &wynik);
+        wsk_B++;
     }
 
     return wynik;
