@@ -14,7 +14,7 @@ typedef struct ciag_ary {
 
 typedef struct sumowalne_ciagi {
 
-  int r; // Reszta z dzielenia przez q;
+  int reszta; // Reszta z dzielenia przez q;
   ciag_ary* t_ciag;
   unsigned rozmiar; // Rozmiar tablicy t_ciag (rozłączne ciągi arytmetyczne  o różnicy q z tą samą resztą z dzielenia przez q)
 

@@ -26,7 +26,7 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
 
      // Ten ciąg jest  również częścią klasy abstrakcji ciągów o tej samej reszcie z dzielenia przez q.
      sumowalne_ciagi pewien_sumowalny_ciag ={
-        .r = a % Q.wartosc,
+        .reszta = a % Q.wartosc,
         .t_ciag = t_ciag,
         .rozmiar = 1
      };
@@ -45,6 +45,25 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
 // Daje w wyniku zbior zlozony z samego elementu a, tj. {a}.
 zbior_ary singleton(int a){
     return ciag_arytmetyczny(a, Q.wartosc, a);
+}
+
+zbior_ary zbior_pusty(unsigned pamiec){
+    sumowalne_ciagi* t_sum = (sumowalne_ciagi*) malloc (pamiec * sizeof(sumowalne_ciagi));
+    zbior_ary pusty={
+        .t_sum = t_sum,
+        .rozmiar = 0,
+    };
+    return pusty;
+}
+
+sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
+    ciag_ary* t_ciag = (ciag_ary*) malloc (pamiec * sizeof(ciag_ary));
+    sumowalne_ciagi pusty ={
+        .reszta = reszta,
+        .t_ciag = t_ciag,
+        .rozmiar = 0
+    };
+    return pusty;
 }
 
 void wypisz_ciag(ciag_ary pewien_ciag){
@@ -70,18 +89,54 @@ void wypisz_zbior(zbior_ary A){
     printf("\n");
 }
 
+void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
+    // Ta funkcja dodaje do wyniku jeden sumowalny ciąg
+
+    wynik->rozmiar ++; // Te strzałeczki chyba są dobrze ????
+    unsigned ost_elem = wynik->rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy)
+    wynik->t_sum[ost_elem] = A;
+}
+
+void polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, zbior_ary* wynik){
+    // Ta funkcja łączy dwa sumowalne ciągi w jeden zapisując go w wyniku.
+
+    // Tworzymy tablicę z od razu zaalokowaną pamięcią.
+    // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
+    sumowalne_ciagi suma  = pusty_sumowalny(A.rozmiar + B.rozmiar, A.reszta);
+}
+
 // Daje w wyniku zbior reprezentujacy teoriomnogosciowa sume zbiorow A i B.
 zbior_ary suma(zbior_ary A, zbior_ary B){
 
-    // Tworzymy tablicę zaznaczającą, które wspólne reszty z dzilenia przez q są wspólne z A. 
-    // Początkowo ustawiamy, że rzadne.
-    bool* czy_reszta_uwzgl = (bool*) malloc (B.rozmiar * sizeof(bool));
-    for(unsigned i = 0 ; i < B.rozmiar ; ++i){
-        czy_reszta_uwzgl[i] = false;
+    // Tworzymy tablicę z od razu zaalokowaną pamięcią.
+    // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
+    zbior_ary wynik = zbior_pusty(A.rozmiar + B.rozmiar); 
+
+    unsigned wsk_A = 0; // Wskaźnik po zbiorze A.
+    unsigned wsk_B = 0; // Wskaźnik po zbiorze B.
+    while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
+
+        int reszta_A = A.t_sum[wsk_A].reszta;
+        int reszta_B = B.t_sum[wsk_B].reszta;
+
+        if(reszta_A == reszta_B){
+            polacz_sumowalne(A.t_sum[wsk_A], B.t_sum[wsk_B], &wynik);
+            wsk_A++;
+            wsk_B++;
+        }
+
+        else if(reszta_A < reszta_B){
+            dodaj_sumowalne(A.t_sum[wsk_A], &wynik);
+            wsk_A++;
+        }
+
+        else if(reszta_A > reszta_B){
+            dodaj_sumowalne(B.t_sum[wsk_B], &wynik);
+            wsk_B++;
+        }
     }
 
-
-    
+    return wynik;
 }
 
 // // Daje w wyniku zbior reprezentujacy czesc wspolna zbiorow A i B.
