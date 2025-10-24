@@ -214,12 +214,16 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     return suma;
 }
 
+typedef void (*Rowne_Reszty)(unsigned*, unsigned*, sumowalne_ciagi, sumowalne_ciagi, zbior_ary*);
+typedef void (*A_WIEKSZE_B)(unsigned*, sumowalne_ciagi, zbior_ary*);
+typedef void (*A_MNIEJSZE_B)(unsigned*, sumowalne_ciagi, zbior_ary*);
+
 zbior_ary przeszukaj_reszty(
     unsigned romiar_wyniku,
     zbior_ary A, zbior_ary B, 
-    void (*rowne_reszty)(unsigned*, unsigned*, sumowalne_ciagi, sumowalne_ciagi, zbior_ary*),
-    void (*A_wieksze_B)(unsigned*, sumowalne_ciagi, zbior_ary*),
-    void (*A_mniejsze_B)(unsigned*, sumowalne_ciagi, zbior_ary*)
+    Rowne_Reszty rowne_reszty,
+    A_WIEKSZE_B A_wieksze_B,
+    A_MNIEJSZE_B A_mniejsze_B
 ){
     zbior_ary wynik = zbior_pusty(romiar_wyniku); 
 
@@ -269,7 +273,10 @@ void SUMA_A_mniejsze_B(unsigned* wsk_A, sumowalne_ciagi A, zbior_ary* wynik){
     dodaj_sumowalne(A, &(*wynik));
     (*wsk_A)++;
 }
+typedef sumowalne_ciagi (*AxBwA)(sumowalne_ciagi, sumowalne_ciagi);
+typedef Rowne_Reszty (*ROWNE_RESZTY)(AxBwA);
 
+ROWNE_RESZTY suma_czy_roznica()
 // Daje w wyniku zbior reprezentujacy teoriomnogosciowa sume zbiorow A i B.
 zbior_ary suma(zbior_ary A, zbior_ary B){
 
