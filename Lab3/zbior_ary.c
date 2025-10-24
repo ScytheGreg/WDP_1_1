@@ -68,6 +68,7 @@ sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
 }
 
 void wypisz_ciag(ciag_ary pewien_ciag){
+    printf("C: ");
     for(int a = pewien_ciag.first ; a <= pewien_ciag.last ; a += Q.wartosc){
         printf("%d ", a);
     }
@@ -103,6 +104,12 @@ typedef struct punkt{
     bool poczatek;
 } punkt;
 
+bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
+    if(a.wartosc > b.wartosc)
+        return true;
+    return a.poczatek < b.poczatek;
+}
+
 void wypisz_punkt(punkt A){
     printf("Punkt:%d, %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
 }
@@ -111,15 +118,16 @@ void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){ //Działa
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         punkt poczatek = {A.t_ciag[i].first, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
-        wypisz_punkt(poczatek);
-        punkt koniec = {A.t_ciag[i].last, czy_A, false};
+        //wypisz_punkt(poczatek);
+        punkt koniec = {A.t_ciag[i].last + Q.wartosc, czy_A, false};
         (*tab_A)[2 * i + 1] = koniec;
-        wypisz_punkt(koniec);
+        //wypisz_punkt(koniec);
     }
 }
 
 void dodaj_punkt(punkt** tab, unsigned* ind, int* wsk_A, punkt wartosc){
     (*tab)[*ind] = wartosc;
+    //printf("Dodaję punkt nr %d o wartosci %d, a miała być watość: %d\n", *ind, (*tab)[*ind].wartosc, wartosc.wartosc);
     (*wsk_A)++;
     (*ind)++;
 }
@@ -137,21 +145,24 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     
     int wsk_A = -1;
     int wsk_B = -1;
-    while(wsk_A < (int) A.rozmiar * 2 || wsk_B < (int) B.rozmiar * 2){
-        if(wsk_A >= (int) A.rozmiar * 2)
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B]);
+    while(wsk_A + 1 < (int) A.rozmiar * 2 || wsk_B  + 1 < (int) B.rozmiar * 2){
+        printf("Sortujemy punkty. wsk_A = %d, wsk_B = %d, wartoscA = %d, wartoscB = %d\n",
+        wsk_A + 1, wsk_B + 1, tab_A[wsk_A + 1].wartosc, tab_B[wsk_B + 1].wartosc
+        );
+        if(wsk_A + 1 >= (int) A.rozmiar * 2)
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1]);
         
-        else if(wsk_B >= (int) B.rozmiar * 2){
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A]);
-        }
+        else if(wsk_B + 1>= (int) B.rozmiar * 2)
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1]);
         
-        else if(tab_A[wsk_A + 1].wartosc > tab_B[wsk_B + 1].wartosc)
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B]);
+        
+        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1]))
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1]);
         
         else
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A]);
+            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1]);
     }
-    printf("Akuku posortuj\n");
+    //printf("Akuku posortuj\n");
     free(tab_A);
     free(tab_B);
 }
@@ -159,12 +170,9 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
 void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
     // Ta funkcja dodaje do wyniku jeden sumowalny ciąg
 
-    printf("dodaj_sumowalne działa!\n");
-
     wynik->rozmiar ++; // Te strzałeczki chyba są dobrze ????
     unsigned ost_elem = wynik->rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy)
     wynik->t_sum[ost_elem] = A;
-
 }
 
 sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
@@ -177,10 +185,11 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     // Tablica, która będzie przechowywała posortowane początki i końce A i B
     punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
     posortuj(A, B, &sort_punkt); // O(Ary_q(A) + Ary_q(B)
-    printf("Akuku\n");
-    int zlicz_pocz = 0;
-    int zlicz_kon = 0;
+    //printf("Akuku\n");
+
     int first = -1;
+    int zlicz_kon = 0;
+    int zlicz_pocz = 0;
 
     for(unsigned i = 0 ; i < 2 * (A.rozmiar + B.rozmiar) ; ++i){
         //wypisz_punkt(sort_punkt[i]);
@@ -192,14 +201,13 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
             zlicz_pocz++;
         else
             zlicz_kon++;
-        
+
         if(zlicz_pocz == zlicz_kon){
-            ciag_ary nowy_ciag = {first, sort_punkt[i].wartosc};
+            ciag_ary nowy_ciag = {first, sort_punkt[i].wartosc - Q.wartosc};
             przypisz_ciag(nowy_ciag, &suma);
             first = -1;
         }
     }
-
     free(sort_punkt);
     return suma;
 }

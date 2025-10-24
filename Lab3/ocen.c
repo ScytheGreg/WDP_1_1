@@ -7,7 +7,7 @@ int main() {
   zbior_ary A = ciag_arytmetyczny(2, 5, 12);
   wypisz_zbior(A);
 
-  zbior_ary B = singleton(7);
+  zbior_ary B = singleton(27);
   wypisz_zbior(B);
 
   wypisz_zbior(suma(A, B));
