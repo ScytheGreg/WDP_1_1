@@ -1,5 +1,3 @@
-#include <stdbool.h>
-#include <assert.h>
 #include "zbior_ary.h"
 
 int main() {
@@ -7,7 +5,7 @@ int main() {
   zbior_ary A = ciag_arytmetyczny(2, 5, 12);
   wypisz_zbior(A);
 
-  zbior_ary B = singleton(27);
+  zbior_ary B = ciag_arytmetyczny(22, 5, 32);
   wypisz_zbior(B);
 
   wypisz_zbior(suma(A, B));
