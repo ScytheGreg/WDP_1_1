@@ -114,7 +114,8 @@ void wypisz_punkt(punkt A){
     printf("Punkt:%d, %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
 }
 
-void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){ //Działa
+void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
+    // Przepisuje wszyskie punkty z A do 'punkt'ów .
     //printf("Czy_A: %d\n", czy_A);
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         punkt poczatek = {A.t_ciag[i].first, czy_A, true};
@@ -147,6 +148,8 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     int wsk_A = -1;
     int wsk_B = -1;
     //printf("A_max: %u, B_max: %u \n", A.rozmiar *2 - 2, B.rozmiar * 2 - 2);
+
+    // Idziemy po kolei. Ta, która jest mniejsza następna będzie wpisana do tablicy.
     while(wsk_A  < (int) A.rozmiar * 2 - 1 || wsk_B  < (int) B.rozmiar * 2 - 1){
         //printf("Sortujemy punkty. wsk_A = %d, wsk_B = %d, wartoscA = %d, wartoscB = %d\n",
         //wsk_A, wsk_B, tab_A[wsk_A + 1].wartosc, tab_B[wsk_B + 1].wartosc
@@ -178,7 +181,7 @@ void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
 }
 
 sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
-    // Ta funkcja łączy dwa sumowalne ciągi w jeden zapisując go w wyniku.
+    // Ta funkcja dodaje dwa sumowalne ciągi teoriomnogościowo.
     
     // Tworzymy tablicę z od razu zaalokowaną pamięcią.
     // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
@@ -193,6 +196,7 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     int zlicz_kon = 0;
     int zlicz_pocz = 0;
 
+    // Zliczamy ile jest początków i ile konców. Jesli pocz = kon, to znaczy, że jeden sumowalny zbior się dodał.
     for(unsigned i = 0 ; i < 2 * (A.rozmiar + B.rozmiar) ; ++i){
         //wypisz_punkt(sort_punkt[i]);
         //printf("Pocz: %d, Kon: %d\n", zlicz_pocz, zlicz_kon);
@@ -214,28 +218,39 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     return suma;
 }
 
-typedef void (*Rowne_Reszty)(unsigned*, unsigned*, sumowalne_ciagi, sumowalne_ciagi, zbior_ary*);
-typedef void (*A_WIEKSZE_B)(unsigned*, sumowalne_ciagi, zbior_ary*);
+// Typ zmiennej - nazwa tej zmiennej to 'AxBwA'. Zmienna będzie funkcją zwracjacą 'sumowalne ciągi',
+// która przyjmuje dwa sumowalne ciagi.
+typedef sumowalne_ciagi (*AxBwA)(sumowalne_ciagi, sumowalne_ciagi);
+
+// Typ zmiennej - nazwa tej zmiennej to 'Rowne_Reszty'. Zmienna będzie funkcją void, która przyjmuje zadane parametry.
+typedef void (*Rowne_Reszty)(unsigned*, unsigned*, sumowalne_ciagi, sumowalne_ciagi, zbior_ary*, AxBwA);
+typedef void (*A_WIEKSZE_B) (unsigned*, sumowalne_ciagi, zbior_ary*);
 typedef void (*A_MNIEJSZE_B)(unsigned*, sumowalne_ciagi, zbior_ary*);
 
 zbior_ary przeszukaj_reszty(
     unsigned romiar_wyniku,
     zbior_ary A, zbior_ary B, 
     Rowne_Reszty rowne_reszty,
+    AxBwA operacja,
     A_WIEKSZE_B A_wieksze_B,
     A_MNIEJSZE_B A_mniejsze_B
 ){
+   // Ta funkcja łaczy dwa zbiory w jeden przeszukując ich reszty z dzielenia przez q.
+
+    // Tworzymy pusty zbior o odpowiednim rozmiarze
     zbior_ary wynik = zbior_pusty(romiar_wyniku); 
 
     unsigned wsk_A = 0; // Wskaźnik po zbiorze A.
     unsigned wsk_B = 0; // Wskaźnik po zbiorze B.
+
+    // Zakładamy, że reszty w zbiorach A i B są posortowane. Idziemy wskaźnikami po kolei, zwiększając mniejszą resztę.
     while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
 
         int reszta_A = A.t_sum[wsk_A].reszta;
         int reszta_B = B.t_sum[wsk_B].reszta;
 
         if(reszta_A == reszta_B)
-            rowne_reszty(&wsk_A, &wsk_B, A.t_sum[wsk_A], B.t_sum[wsk_B], &wynik);
+            rowne_reszty(&wsk_A, &wsk_B, A.t_sum[wsk_A], B.t_sum[wsk_B], &wynik, operacja);
 
         else if(reszta_A < reszta_B)
             A_mniejsze_B(&wsk_A, A.t_sum[wsk_A], &wynik);
@@ -244,6 +259,7 @@ zbior_ary przeszukaj_reszty(
             A_wieksze_B(&wsk_B, B.t_sum[wsk_B], &wynik);
     }
 
+    // Gdy jakieś reszty zostaną w jednym ze zbiorów, to chcemy odpowiedznie wartości dopisać do ostatecznego wyniku.
     while(wsk_A < A.rozmiar)
         A_mniejsze_B(&wsk_A, A.t_sum[wsk_A], &wynik);
 
@@ -253,78 +269,64 @@ zbior_ary przeszukaj_reszty(
     return wynik;
 }
 
-void SUMA_rowne_reszty
+void ROWNE_RESZTY
     (unsigned* wsk_A, unsigned* wsk_B,
     sumowalne_ciagi A, sumowalne_ciagi B,
-    zbior_ary* wynik)
+    zbior_ary* wynik , AxBwA operacja
+    )
 {
-    sumowalne_ciagi poloczne_ciagi = polacz_sumowalne(A, B);
+    // Ta funkcja jest częścią przeszukiwania. Wykonuje operację na dwóch sumowalnych ciagach
+    //  w najtrudniejszym przypadku, czyli kiedy reszty są równe.
+    sumowalne_ciagi poloczne_ciagi = operacja(A, B);
     dodaj_sumowalne(poloczne_ciagi, &(*wynik));
     (*wsk_A)++;
-    (*wsk_B)++;    
+    (*wsk_B)++;
 }
 
 void SUMA_A_wieksze_B(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
+    // Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
     dodaj_sumowalne(B, &(*wynik));
     (*wsk_B)++;
 }
 
-void SUMA_A_mniejsze_B(unsigned* wsk_A, sumowalne_ciagi A, zbior_ary* wynik){
+void SUMA_i_ROZNICA_A_mniejsze_B(unsigned* wsk_A, sumowalne_ciagi A, zbior_ary* wynik){
+    // Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
     dodaj_sumowalne(A, &(*wynik));
     (*wsk_A)++;
 }
-typedef sumowalne_ciagi (*AxBwA)(sumowalne_ciagi, sumowalne_ciagi);
-typedef Rowne_Reszty (*ROWNE_RESZTY)(AxBwA);
 
-ROWNE_RESZTY suma_czy_roznica()
+void ROZNICA_A_wieksze_B(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
+    (*wsk_B)++;
+}
+
+
+
 // Daje w wyniku zbior reprezentujacy teoriomnogosciowa sume zbiorow A i B.
 zbior_ary suma(zbior_ary A, zbior_ary B){
 
     return przeszukaj_reszty
     (
-        A.rozmiar + B.rozmiar,
-        A, B,
-        SUMA_rowne_reszty,
-        SUMA_A_wieksze_B,
-        SUMA_A_mniejsze_B
+        A.rozmiar + B.rozmiar, // Tutaj ustawiamy maksymalny rozmiar zwracanego zbioru
+        A, B, // Zbiory, które dodajemy
+        ROWNE_RESZTY, // Funkcja, która jesty wykonywana w przypadku znalezienia rownych reszt
+        polacz_sumowalne, // Funkcja, która jest częscią funkcji ROWNE_RESZTY
+        SUMA_A_wieksze_B, // -^^- gdy reszta A jest większa niż reszta B
+        SUMA_i_ROZNICA_A_mniejsze_B// -^^-                   mniejsza 
     );
 }
-/*
+
 // Daje w wyniku zbior A \ B.
 zbior_ary roznica(zbior_ary A, zbior_ary B){
-    // Tworzymy tablicę z od razu zaalokowaną pamięcią.
-    // Ostateczny Ary_q(wynik) >= max(A.rozmiar), więc limit pamięci spełniony.
-    zbior_ary wynik = zbior_pusty(A.rozmiar); 
-
-    unsigned wsk_A = 0; // Wskaźnik po zbiorze A.
-    unsigned wsk_B = 0; // Wskaźnik po zbiorze B.
-    while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
-        int reszta_A = A.t_sum[wsk_A].reszta;
-        int reszta_B = B.t_sum[wsk_B].reszta;
-
-        if(reszta_A == reszta_B){
-            sumowalne_ciagi odjete_ciagi = odejmij_sumowalne(A.t_sum[wsk_A], B.t_sum[wsk_B]);
-            dodaj_sumowalne(odjete_ciagi_ciagi, &wynik);
-            wsk_A++;
-            wsk_B++;
-        }
-
-        else if(reszta_A < reszta_B){
-            dodaj_sumowalne(A.t_sum[wsk_A], &wynik);
-            wsk_A++;
-        }
-
-        else if(reszta_A > reszta_B){
-            wsk_B++;
-        }
-    }
-    while(wsk_A < A.rozmiar){
-        dodaj_sumowalne(A.t_sum[wsk_A], &wynik);
-        wsk_A++;
-    }
-    return wynik;
+    return przeszukaj_reszty(
+        A.rozmiar, 
+        A, B,
+        ROWNE_RESZTY,
+        odejmij_sumowalne,
+        ROZNICA_A_wieksze_B,
+        SUMA_i_ROZNICA_A_mniejsze_B
+    );
 }
-*/
+
 // // Daje w wyniku zbior reprezentujacy czesc wspolna zbiorow A i B.
 // zbior_ary iloczyn(zbior_ary A, zbior_ary B){
 //     zbior_ary x = A;
