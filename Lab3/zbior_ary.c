@@ -105,9 +105,12 @@ typedef struct punkt{
 } punkt;
 
 bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
-    if(a.wartosc == b.wartosc)
-        return a.poczatek < b.poczatek;
-    return a.wartosc > b.wartosc;
+    if(a.wartosc == b.wartosc){
+        if(a.poczatek && b.poczatek) // Preferujemy B na początku -> Istotne przy różnicy
+            return a.czy_A > b.czy_A;
+        return a.poczatek < b.poczatek; // Jeszcze bardziej preferujemy początek przed końcem -> istotne przy sumie
+    }
+    return a.wartosc > b.wartosc; // Sortujemy po wartościach.
 }
 
 void wypisz_punkt(punkt A){
@@ -172,7 +175,7 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     free(tab_B);
 }
 
-void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
+void przypisz_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
     // Ta funkcja dodaje do wyniku jeden sumowalny ciąg
 
     wynik->rozmiar ++;
@@ -180,7 +183,7 @@ void dodaj_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
     wynik->t_sum[ost_elem] = A;
 }
 
-sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
+sumowalne_ciagi dodaj_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     // Ta funkcja dodaje dwa sumowalne ciągi teoriomnogościowo.
     
     // Tworzymy tablicę z od razu zaalokowaną pamięcią.
@@ -216,6 +219,49 @@ sumowalne_ciagi polacz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
     }
     free(sort_punkt);
     return suma;
+}
+
+sumowalne_ciagi odejmij_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B){
+    // Ta funkcja odejmuje dwa sumowalne ciągi teoriomnogościowo.
+    
+    // Tworzymy tablicę z od razu zaalokowaną pamięcią.
+    // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
+    sumowalne_ciagi roznica  = pusty_sumowalny(A.rozmiar + B.rozmiar, A.reszta);
+
+    // Tablica, która będzie przechowywała posortowane początki i końce A i B
+    punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
+    posortuj(A, B, &sort_punkt); // O(Ary_q(A) + Ary_q(B)
+    //printf("Akuku\n");
+
+    int stan = 0;
+    int first = -1;
+
+    // Aktualizujemy 'stan'. Jeśli jesteśmy na początku A lub na końcu B, to stan zwiększamy o 1.
+    // W przeciwnym przypadku  zmniejszamy o 1. Jeśli stan jest dodatni, to jest to początek ciągu dodania.
+    // Gdy stan zmienia się z dodatnigo na niedodatni, to znaleźliśmy koniec ciągu, który należy dodać do wyniku.
+    // Wiemy, że stan <= 1
+    for(unsigned i = 0 ; i < 2 * (A.rozmiar + B.rozmiar) ; ++i){
+        //wypisz_punkt(sort_punkt[i]);
+        //printf("Pocz: %d, Kon: %d\n", zlicz_pocz, zlicz_kon);
+        punkt p = sort_punkt[i];
+        if((p.poczatek && p.czy_A) || (!p.poczatek && !p.czy_A))
+            stan++;
+        else{
+            stan--;
+            if(stan == 0){ //Stan zmienił się z dodatniego na niedodatni.
+                assert(first >= 0);
+                ciag_ary ciag = {first, p.wartosc - Q.wartosc};
+                przypisz_ciag(ciag, &roznica);
+                first = -1;
+            }
+        }
+
+        if(stan > 0){
+            first = p.wartosc;
+        }
+    }
+    free(sort_punkt);
+    return roznica;
 }
 
 // Typ zmiennej - nazwa tej zmiennej to 'AxBwA'. Zmienna będzie funkcją zwracjacą 'sumowalne ciągi',
@@ -278,25 +324,27 @@ void ROWNE_RESZTY
     // Ta funkcja jest częścią przeszukiwania. Wykonuje operację na dwóch sumowalnych ciagach
     //  w najtrudniejszym przypadku, czyli kiedy reszty są równe.
     sumowalne_ciagi poloczne_ciagi = operacja(A, B);
-    dodaj_sumowalne(poloczne_ciagi, &(*wynik));
+    przypisz_sumowalne(poloczne_ciagi, &(*wynik));
     (*wsk_A)++;
     (*wsk_B)++;
 }
 
 void SUMA_A_wieksze_B(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     // Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
-    dodaj_sumowalne(B, &(*wynik));
+    przypisz_sumowalne(B, &(*wynik));
     (*wsk_B)++;
 }
 
 void SUMA_i_ROZNICA_A_mniejsze_B(unsigned* wsk_A, sumowalne_ciagi A, zbior_ary* wynik){
     // Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
-    dodaj_sumowalne(A, &(*wynik));
+    przypisz_sumowalne(A, &(*wynik));
     (*wsk_A)++;
 }
 
 void ROZNICA_A_wieksze_B(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     (*wsk_B)++;
+    B = (*wynik).t_sum[0];
+    assert((int) B.rozmiar > -1);
 }
 
 
@@ -309,7 +357,7 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
         A.rozmiar + B.rozmiar, // Tutaj ustawiamy maksymalny rozmiar zwracanego zbioru
         A, B, // Zbiory, które dodajemy
         ROWNE_RESZTY, // Funkcja, która jesty wykonywana w przypadku znalezienia rownych reszt
-        polacz_sumowalne, // Funkcja, która jest częscią funkcji ROWNE_RESZTY
+        dodaj_sumowalne, // Funkcja, która jest częscią funkcji ROWNE_RESZTY
         SUMA_A_wieksze_B, // -^^- gdy reszta A jest większa niż reszta B
         SUMA_i_ROZNICA_A_mniejsze_B// -^^-                   mniejsza 
     );
