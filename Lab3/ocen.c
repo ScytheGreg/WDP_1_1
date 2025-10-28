@@ -1,4 +1,5 @@
 #include "zbior_ary.h"
+#include <stdio.h>
 
 int main() {
   // A = {2, 7, 12}
@@ -15,4 +16,7 @@ int main() {
   wypisz_zbior(D);
 
   wypisz_zbior(roznica(suma(A, B), suma(D, C)));
+
+  printf("52 należy do B: %d\n", nalezy(B, 52));
+
 }

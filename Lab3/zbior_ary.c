@@ -375,25 +375,74 @@ zbior_ary roznica(zbior_ary A, zbior_ary B){
     );
 }
 
-// // Daje w wyniku zbior reprezentujacy czesc wspolna zbiorow A i B.
-// zbior_ary iloczyn(zbior_ary A, zbior_ary B){
-//     zbior_ary x = A;
-//     assert(B.Ary_q == 0);
-//     return x;
-// }
+// Daje w wyniku zbior reprezentujacy czesc wspolna zbiorow A i B.
+zbior_ary iloczyn(zbior_ary A, zbior_ary B){
+    return roznica(A, roznica(A, B));
+}
 
-// // Daje w wyniku true wtw. gdy liczba b nalezy do zbioru A.
-// bool nalezy(zbior_ary A, int b){
-//     assert(moc(A) == 1);
-//     return b == 0;
-// }
+// Daje w wyniku sumowalne_ciagi o tej samej reszcie z dzielenia przez Q co b, albo puste.
+sumowalne_ciagi binsearch_reszt(zbior_ary A, int b){
 
-// // Wynikiem funkcji jest liczba elementow w zbiorze A.
-// unsigned moc(zbior_ary A){
-//     return ary(A);
-// }
+    unsigned p = 0;
+    unsigned k = A.rozmiar;
+    while(k - p > 0){
+        unsigned s = (p + k) / 2;
+        if(A.t_sum[s].reszta == b % Q.wartosc)
+            return A.t_sum[s];
+        else if(A.t_sum[s].reszta > b % Q.wartosc)
+            k = s;
+        else 
+            p = s;
+    }
+    return pusty_sumowalny(0, b % Q.wartosc);
+}
 
-// // Wynikiem funkcji jest Ary_q(A), czyli minimalna liczba parami rozlacznych ciagow arytmetycznych o roznicy q, ktorych suma jest zbior A.
-// unsigned ary(zbior_ary A){
-//     return moc(A);
-// }
+// Sprawdza, czy b należy do któregoś z ciągów w 'sumowalne_ciagi A' w czasie O(log(A.rozmiar))
+bool binsearch_ciagow(sumowalne_ciagi A, int b){
+
+    unsigned p = 0;
+    unsigned k = A.rozmiar;
+    while(k - p > 0){
+        unsigned s = (p + k) / 2;
+        ciag_ary ciag = A.t_ciag[s];
+        if(ciag.first <= b && b <= ciag.last)
+            return true;
+        else if(ciag.first > b)
+            k = s;
+        else
+            p = s;
+    }
+    return false;
+}
+// Daje w wyniku true wtw. gdy liczba b nalezy do zbioru A.
+bool nalezy(zbior_ary A, int b){
+
+    sumowalne_ciagi B = binsearch_reszt(A, b);
+
+    wypisz_sumowalny_ciag(B);
+
+    return binsearch_ciagow(B, b);
+}
+
+// Wynikiem funkcji jest liczba elementow w zbiorze A.
+unsigned moc(zbior_ary A){
+    unsigned moc = 0;
+    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
+        sumowalne_ciagi S = A.t_sum[i];
+        for(unsigned j = 0 ; j < S.rozmiar ; ++j){
+            ciag_ary C = S.t_ciag[j];
+            moc += (unsigned) ((C.last - C.first) / Q.wartosc);
+        }
+    }
+    return moc;
+}
+
+// Wynikiem funkcji jest Ary_q(A), czyli minimalna liczba parami rozlacznych ciagow arytmetycznych o roznicy q, ktorych suma jest zbior A.
+unsigned ary(zbior_ary A){
+    unsigned ary_q = 0;
+    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
+        sumowalne_ciagi S = A.t_sum[i];
+        ary_q += S.rozmiar;
+    }
+    return ary_q;
+}
