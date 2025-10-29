@@ -6,7 +6,7 @@
 // Różnica ciągu arytmetycznego, stała dla całego zadania.
 typedef struct Q_struct{ 
   int wartosc;
-  bool czy_ustawione;
+  bool czy_ustawione; // Pomaga sprawdzić, czy dane na wejściu spełniają warunek zadania
 } Q_struct;
 
 // Pojedynczy ciąg arytmetyczny
@@ -32,12 +32,6 @@ typedef struct zbior_ary {
   unsigned rozmiar; // Rozmiar tablicy t_sum (ilość różnych reszt z dzilenia przez q w zbiorze)
 
 } zbior_ary;
-
-// Wypisuje zbiór 
-void wypisz_zbior(zbior_ary A);
-
-// Zwraca nieujemne modulo a przez q
-int modulo(int a);
 
 /* Najlepiej nie modyfikowac nic ponizej. */
 

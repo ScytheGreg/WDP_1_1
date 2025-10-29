@@ -93,31 +93,6 @@ sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     return pusty;
 }
 
-// Kolejne funkcje wypisują odpiwiednie struktury na wyjście standardowe
-void wypisz_ciag(ciag_ary pewien_ciag){
-    printf("C: ");
-    for(int a = pewien_ciag.first ; a <= pewien_ciag.last ; a += Q.wartosc){
-        printf("%d ", a);
-    }
-}
-
-void wypisz_sumowalny_ciag(sumowalne_ciagi sum_ciagi){
-    for(unsigned i = 0 ; i < sum_ciagi.rozmiar ; ++i){
-        ciag_ary pewien_ciag = sum_ciagi.t_ciag[i];
-        wypisz_ciag(pewien_ciag);
-        printf(" ");
-    }
-}
-
-void wypisz_zbior(zbior_ary A){
-    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
-        sumowalne_ciagi pewien_sumowalny_ciag = A.t_sum[i];
-        wypisz_sumowalny_ciag(pewien_sumowalny_ciag);
-        printf("\n");
-    }
-    printf("\n");
-}
-
 // Zwiększa 'rozmiar' pewnego sumowalnego ciągu o 1 i wpisuje tam pewien ciąg arytmetyczny
 void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
     A -> rozmiar ++;
@@ -142,28 +117,21 @@ bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
     return a.wartosc > b.wartosc; // Sortujemy po wartościach.
 }
 
-// Wypisuje punkt
-void wypisz_punkt(punkt A){
-    printf("Punkt:%d, %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
-}
-
 // Przepisuje wszyskie punkty z A do 'punkt'ów 
 void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
-    //printf("Czy_A: %d\n", czy_A);
+
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         punkt poczatek = {A.t_ciag[i].first, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
-        //wypisz_punkt(poczatek);
+
         punkt koniec = {A.t_ciag[i].last + Q.wartosc, czy_A, false};
         (*tab_A)[2 * i + 1] = koniec;
-        //wypisz_punkt(koniec);
     }
 }
 
 // Do pewnej tablicy punktów 'tab' dopisuję na końcu punkt, przesuwam wskaźnik
 void dodaj_punkt(punkt** tab, unsigned* ind, int* wsk_A, punkt wartosc){
     (*tab)[*ind] = wartosc;
-    //printf("Dodaję punkt nr %d o wartosci %d, a miała być watość: %d\n", *ind, (*tab)[*ind].wartosc, wartosc.wartosc);
     (*wsk_A)++;
     (*ind)++;
 }
@@ -182,7 +150,6 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     
     int wsk_A = -1;
     int wsk_B = -1;
-    //printf("A_max: %u, B_max: %u \n", A.rozmiar *2 - 2, B.rozmiar * 2 - 2);
 
     // Idziemy po kolei. Ta, która jest mniejsza następna będzie wpisana do tablicy.
     while(wsk_A  < (int) A.rozmiar * 2 - 1 || wsk_B  < (int) B.rozmiar * 2 - 1){
@@ -198,7 +165,6 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
         else                                        // Jeśli B jest większy niż A to idziemy po A
             IDZ_PO_A;
     }
-    //printf("Akuku posortuj\n");
     free(tab_A);
     free(tab_B);
 }
@@ -220,9 +186,9 @@ int zmiana_stanu(punkt p, bool czy_minus_B){
 
 // Idzie po kolejnych posortowanych punktach i dodaje znalezione ciągi do wyniku
 void znajdz_ciagi_po_punktach(
-    punkt* sort_punkt, unsigned n,
+    punkt* sort_punkt, unsigned n,// 'n' - maksymalny indeks
      sumowalne_ciagi* wynik,
-      int poczatkowy_stan, bool czy_minus_B)
+    int poczatkowy_stan, bool czy_minus_B) // Parametry
 {
     int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
     int first; // Początkowy wyraz ciągu
@@ -344,12 +310,13 @@ zbior_ary przeszukaj_reszty(
     return wynik;
 }
 
+// Ta funkcja jest częscią przeszukiwania. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
 void A_rozne_B_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
-    // Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
     przypisz_sumowalne(B, &(*wynik));
     (*wsk_B)++;
 }
 
+// Ta funkcja jest częscią przeszukiwania. NIE dodaje do wyniku sumowalnego ciągu ze zbioru i przesuwa wskaźnik.
 void A_rozne_B_NIE_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     (*wsk_B)++;
     B = (*wynik).t_sum[0]; // To nic nie robi. Dla kompilatora
@@ -390,8 +357,10 @@ zbior_ary iloczyn(zbior_ary A, zbior_ary B){
 
 // Daje w wyniku sumowalne_ciagi o tej samej reszcie z dzielenia przez Q co b, albo puste w czasie O(log(A.rozmiar))
 sumowalne_ciagi binsearch_reszt(zbior_ary A, int b){
+
     if(A.rozmiar == 0)
         return pusty_sumowalny(0, modulo(b));
+
     int pocz = -1;
     int kon = (int) A.rozmiar; // Definiujemy wskaźniki
 
@@ -450,6 +419,7 @@ bool nalezy(zbior_ary A, int b){
 
 // Wynikiem funkcji jest liczba elementow w zbiorze A.
 unsigned moc(zbior_ary A){
+    
     unsigned moc = 0;
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         sumowalne_ciagi S = A.t_sum[i];

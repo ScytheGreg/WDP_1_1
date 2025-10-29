@@ -3,18 +3,6 @@
 #include <assert.h>
 
 int main() {
-  const int a = 22;
-  const int m_a = -23;
-  const int q = 5;
-  zbior_ary U = ciag_arytmetyczny(m_a, q, a);
-
-  for(int i = m_a - 2 ; i <= a + 2 ; i += 1){
-    assert(nalezy(U, i) == (modulo(i) == modulo(a)));
-    assert(nalezy(singleton(i), i));
-    assert(!nalezy(singleton(i), i + q));
-    assert(!nalezy(singleton(i), i - q));
-  }
-
     // A = {2, 7, 12}
   zbior_ary A = ciag_arytmetyczny(2, 5, 12);
   assert(moc(A) == 3);
