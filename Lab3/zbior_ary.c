@@ -6,15 +6,28 @@
 
 
 //Zmienna globalna (bez niej nie da się zrobić zadania)
-
-Q_struct Q;
+Q_struct Q = {0, false};
 
 // Funkcja daje w wyniku zbior reprezentujacy ciag arytmetyczny o elemencie poczatkowym a, końcowym b i roznicy q>0, tj. {a,a+q,...,b}.
 // Mozesz zalozyc, ze we wszystkich zapytaniach w danym tescie wartosc q bedzie taka sama.
 // Mozesz zalozyc, ze ta funkcja zostanie wywolana jako pierwsza.
+
+// Zwraca nieujemne modulo liczby 
+int modulo(int a){
+    if(a % Q.wartosc < 0)
+        return a % Q.wartosc + Q.wartosc;
+
+    return a % Q.wartosc;
+}
+
 zbior_ary ciag_arytmetyczny(int a, int q, int b){
 
-    Q.wartosc = q; // Przypisujemy wartość q dla całego zadania (ta funkcja zostaje wywołana na samym początku)
+    if(Q.czy_ustawione == false){
+        Q.wartosc = q;
+        Q.czy_ustawione = true;
+    } // Przypisujemy wartość q dla całego zadania (ta funkcja zostaje wywołana na samym początku)
+    assert(q == Q.wartosc);
+    assert(modulo(a) == modulo(b));
 
     // Najpierw tworzymy najmniejszą jednostkę - ciąg arytmetyczny
     ciag_ary pewien_ciag ={ 
@@ -27,7 +40,7 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
 
      // Ten ciąg jest  również częścią klasy abstrakcji ciągów o tej samej reszcie z dzielenia przez q.
      sumowalne_ciagi pewien_sumowalny_ciag ={
-        .reszta = a % Q.wartosc,
+        .reszta = modulo(a),
         .t_ciag = t_ciag,
         .rozmiar = 1
      };
@@ -90,7 +103,6 @@ void wypisz_zbior(zbior_ary A){
     }
     printf("\n");
 }
-
 
 void przypisz_ciag(ciag_ary a, sumowalne_ciagi* suma){
     suma -> rozmiar ++;
@@ -191,7 +203,7 @@ int zmiana_stanu(punkt p, bool czy_minus_B){
 }
 
 sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int poczatkowy_stan, bool czy_minus_B){
-    // Ta funkcja przecina dwa sumowalne ciągi teoriomnogościowo.
+    // Ta funkcja łączy dwa sumowalne ciągi teoriomnogościowo.
     
     // Tworzymy tablicę z od razu zaalokowaną pamięcią.
     // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
@@ -203,8 +215,9 @@ sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int pocza
 
     int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczyny -1.
     int first = -1;
+    bool first_ustalone = false;
 
-    // Aktualizujemy 'stan'. Jeśli jesteśmy na początku A lub B, to stan zwiększamy o 1.
+    // Aktualizujemy 'stan'. Jeśli nie czy_minus_B i jesteśmy na początku A lub B, to stan zwiększamy o 1.
     // W przeciwnym przypadku  zmniejszamy o 1. Jeśli stan zmieniea się z 0 na 1, to jest to początek ciągu dodania.
     // Gdy stan zmienia się z 1 na 0, to znaleźliśmy koniec ciągu, który należy dodać do wyniku.
     for(unsigned i = 0 ; i < 2 * (A.rozmiar + B.rozmiar) ; ++i){
@@ -213,15 +226,19 @@ sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int pocza
         int poprzedni_stan = stan;
         stan += zmiana_stanu(p, czy_minus_B);
 
-        if(poprzedni_stan == 0 && stan == 1)
+        //printf("Poprzedni stan:%d, stan: %d\n", poprzedni_stan, stan);
+        if(poprzedni_stan == 0 && stan == 1){
             first = p.wartosc;
-        
+            first_ustalone = true;
+        }
+
         else if(poprzedni_stan == 1 && stan == 0){
-            assert(first >= 0);
+            assert(first_ustalone);
             if(first <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
                 ciag_ary ciag = {first, p.wartosc - Q.wartosc};
                 przypisz_ciag(ciag, &wynik);
-            }     
+            }
+            first_ustalone = false;
         }
     }
     free(sort_punkt);
@@ -336,45 +353,57 @@ zbior_ary iloczyn(zbior_ary A, zbior_ary B){
 
 // Daje w wyniku sumowalne_ciagi o tej samej reszcie z dzielenia przez Q co b, albo puste w czasie O(log(A.rozmiar))
 sumowalne_ciagi binsearch_reszt(zbior_ary A, int b){
+    int pocz = -1;
+    int kon = (int) A.rozmiar;
 
-    unsigned p = 0;
-    unsigned k = A.rozmiar;
-    while(k - p > 0){
-        unsigned s = (p + k) / 2;
-        if(A.t_sum[s].reszta == b % Q.wartosc)
-            return A.t_sum[s];
-        else if(A.t_sum[s].reszta > b % Q.wartosc)
-            k = s;
+    while(kon - pocz > 1){
+        int srod = (pocz + kon) / 2;
+        assert(srod != pocz && srod != kon); // Zapobiega zapętleniu w nieskończoność.
+        if(A.t_sum[srod].reszta < modulo(b))
+            pocz = srod;
         else 
-            p = s;
+            kon = srod;
     }
-    return pusty_sumowalny(0, b % Q.wartosc);
+    assert(kon - pocz == 1); 
+    // 'pocz' to największy indeks mniejszy niż modulo(b)
+    // 'kon' to najmniejszy indeks większy lub równy modulo(b)
+    if(pocz == (int) A.rozmiar - 1) // Jeśli każda reszta mniejsza niż modulo(b), to takiej nie ma - zwracamy pusty ciąg.
+        return pusty_sumowalny(0, modulo(b));
+
+    else if(A.t_sum[pocz + 1].reszta == modulo(b))// Kolejny indeks powinien być równy (jeśli taki jest) albo większy (jeśli takiego nie ma)
+        return A.t_sum[pocz + 1];
+
+    return pusty_sumowalny(0, modulo(b));
 }
 
 // Sprawdza, czy b należy do któregoś z ciągów w 'sumowalne_ciagi A' w czasie O(log(A.rozmiar))
 bool binsearch_ciagow(sumowalne_ciagi A, int b){
 
-    unsigned p = 0;
-    unsigned k = A.rozmiar;
-    while(k - p > 0){
-        unsigned s = (p + k) / 2;
-        ciag_ary ciag = A.t_ciag[s];
-        if(ciag.first <= b && b <= ciag.last)
-            return true;
-        else if(ciag.first > b)
-            k = s;
+    if(A.rozmiar == 0)
+        return false;
+    int pocz = -1;
+    int kon = (int) A.rozmiar;
+    while(kon - pocz > 1){
+        int srod = (pocz + kon) / 2;
+        assert(srod != pocz && srod != kon); // Zapobiega zapętleniu w nieskończoność.
+        if(A.t_ciag[srod].last < b)
+            pocz = srod;
         else
-            p = s;
+            kon = srod;
     }
+    // 'pocz' to największy indeks przedziału mniejszego niż b.
+    // 'kon' to najmniejszy indeks przedziału zawierającego b lub większego niż b.
+    if(pocz == (int) A.rozmiar - 1) // Jeśli każdy przedział jest mniejszy
+        return false;
+
+    if(A.t_ciag[pocz + 1].first <= b && b <= A.t_ciag[pocz + 1].last) // Jeśli się zawiera w kolejnym przedziale
+        return true;
+
     return false;
 }
 // Daje w wyniku true wtw. gdy liczba b nalezy do zbioru A.
 bool nalezy(zbior_ary A, int b){
-
     sumowalne_ciagi B = binsearch_reszt(A, b);
-
-    wypisz_sumowalny_ciag(B);
-
     return binsearch_ciagow(B, b);
 }
 
@@ -385,7 +414,7 @@ unsigned moc(zbior_ary A){
         sumowalne_ciagi S = A.t_sum[i];
         for(unsigned j = 0 ; j < S.rozmiar ; ++j){
             ciag_ary C = S.t_ciag[j];
-            moc += (unsigned) ((C.last - C.first) / Q.wartosc);
+            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc);
         }
     }
     return moc;

@@ -5,6 +5,7 @@
 
 typedef struct Q_struct{ // Różnica ciągu arytmetycznego, stała dla całego zadania.
   int wartosc;
+  bool czy_ustawione;
 } Q_struct;
 
 typedef struct ciag_ary {
@@ -28,6 +29,8 @@ typedef struct zbior_ary {
 } zbior_ary;
 
 void wypisz_zbior(zbior_ary A);
+
+int modulo(int a);
 
 
 
