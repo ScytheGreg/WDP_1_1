@@ -1,16 +1,21 @@
+// Rozwiązanie zadania "Zbiory Arymetyczne" z Labów nr 3.
+// Autorem rozwiazania jest Grzegorz Kaczmarek. mail: g.kaczmarek2@student.uw.edu.pl
+// Z rozwiązania można korzystać w dowolny sposób, pod warunkiem zacytowania autora.
+// W przypadku chęci użycia komercyjnego należy zapytać autora o zgodę.
+
 #include "zbior_ary.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
+#define IDZ_PO_A dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1])
+#define IDZ_PO_B dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1])
+
 
 //Zmienna globalna (bez niej nie da się zrobić zadania)
+// Różnica ciągów arytmetycznych
 Q_struct Q = {0, false};
-
-// Funkcja daje w wyniku zbior reprezentujacy ciag arytmetyczny o elemencie poczatkowym a, końcowym b i roznicy q>0, tj. {a,a+q,...,b}.
-// Mozesz zalozyc, ze we wszystkich zapytaniach w danym tescie wartosc q bedzie taka sama.
-// Mozesz zalozyc, ze ta funkcja zostanie wywolana jako pierwsza.
 
 // Zwraca nieujemne modulo liczby 
 int modulo(int a){
@@ -20,6 +25,11 @@ int modulo(int a){
     return a % Q.wartosc;
 }
 
+// Funkcja daje w wyniku zbior reprezentujacy ciag arytmetyczny
+// o elemencie poczatkowym a, końcowym b i roznicy q>0, tj. {a,a+q,...,b}.
+// Mozesz zalozyc, ze we wszystkich zapytaniach w danym tescie wartosc q bedzie taka sama.
+// Mozesz zalozyc, ze ta funkcja zostanie wywolana jako pierwsza.
+
 zbior_ary ciag_arytmetyczny(int a, int q, int b){
 
     if(Q.czy_ustawione == false){
@@ -27,7 +37,7 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
         Q.czy_ustawione = true;
     } // Przypisujemy wartość q dla całego zadania (ta funkcja zostaje wywołana na samym początku)
     assert(q == Q.wartosc);
-    assert(modulo(a) == modulo(b));
+    assert(modulo(a) == modulo(b));// Sprawdzamy czy dane spełniają warunki zadania.
 
     // Najpierw tworzymy najmniejszą jednostkę - ciąg arytmetyczny
     ciag_ary pewien_ciag ={ 
@@ -61,6 +71,7 @@ zbior_ary singleton(int a){
     return ciag_arytmetyczny(a, Q.wartosc, a);
 }
 
+// Zwraca pusty (o rozmiarze 0) zbiór zajmujący O('pamiec') jednostek pamięci.
 zbior_ary zbior_pusty(unsigned pamiec){
     sumowalne_ciagi* t_sum = (sumowalne_ciagi*) malloc (pamiec * sizeof(sumowalne_ciagi));
     zbior_ary pusty={
@@ -70,6 +81,8 @@ zbior_ary zbior_pusty(unsigned pamiec){
     return pusty;
 }
 
+// Zwraca pusty (o rozmiarze 0) zbiór zajmujący O('pamiec') jednostek pamięci.
+// O reszcie z dzielenia przez Q 'reszta'
 sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     ciag_ary* t_ciag = (ciag_ary*) malloc (pamiec * sizeof(ciag_ary));
     sumowalne_ciagi pusty ={
@@ -80,6 +93,7 @@ sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     return pusty;
 }
 
+// Kolejne funkcje wypisują odpiwiednie struktury na wyjście standardowe
 void wypisz_ciag(ciag_ary pewien_ciag){
     printf("C: ");
     for(int a = pewien_ciag.first ; a <= pewien_ciag.last ; a += Q.wartosc){
@@ -104,33 +118,37 @@ void wypisz_zbior(zbior_ary A){
     printf("\n");
 }
 
-void przypisz_ciag(ciag_ary a, sumowalne_ciagi* suma){
-    suma -> rozmiar ++;
-    unsigned ost_elem = suma -> rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy
-    suma -> t_ciag[ost_elem] = a;
+// Zwiększa 'rozmiar' pewnego sumowalnego ciągu o 1 i wpisuje tam pewien ciąg arytmetyczny
+void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
+    A -> rozmiar ++;
+    unsigned ost_elem = A -> rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy
+    A -> t_ciag[ost_elem] = a;
 }
 
+// Struktura, która przechowuje początki lub końce przedziałów.
 typedef struct punkt{
-    int wartosc;
-    bool czy_A;
-    bool poczatek;
+    int wartosc; // Miejsce na osi liczbowej
+    bool czy_A; // Rozróżnia dwa zbiory: A i B
+    bool poczatek; // Rozróżnia, czy jest to początek ciągu, czy koniec
 } punkt;
 
+// Definiuje a > b
 bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
-    if(a.wartosc == b.wartosc){
-        if(a.poczatek && b.poczatek) // Preferujemy B na początku -> Istotne przy różnicy
+    if(a.wartosc == b.wartosc){      // Gdy wartości są równe
+        if(a.poczatek && b.poczatek) // Najpierw początek B, a potem początek A -> Istotne przy różnicy
             return a.czy_A > b.czy_A;
-        return a.poczatek < b.poczatek; // Jeszcze bardziej preferujemy początek przed końcem -> istotne przy sumie
+        return a.poczatek < b.poczatek; // Preferujemy początek przed końcem -> Istotne przy sumie
     }
     return a.wartosc > b.wartosc; // Sortujemy po wartościach.
 }
 
+// Wypisuje punkt
 void wypisz_punkt(punkt A){
     printf("Punkt:%d, %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
 }
 
+// Przepisuje wszyskie punkty z A do 'punkt'ów 
 void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
-    // Przepisuje wszyskie punkty z A do 'punkt'ów .
     //printf("Czy_A: %d\n", czy_A);
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         punkt poczatek = {A.t_ciag[i].first, czy_A, true};
@@ -142,6 +160,7 @@ void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
     }
 }
 
+// Do pewnej tablicy punktów 'tab' dopisuję na końcu punkt, przesuwam wskaźnik
 void dodaj_punkt(punkt** tab, unsigned* ind, int* wsk_A, punkt wartosc){
     (*tab)[*ind] = wartosc;
     //printf("Dodaję punkt nr %d o wartosci %d, a miała być watość: %d\n", *ind, (*tab)[*ind].wartosc, wartosc.wartosc);
@@ -149,16 +168,17 @@ void dodaj_punkt(punkt** tab, unsigned* ind, int* wsk_A, punkt wartosc){
     (*ind)++;
 }
 
+// Sortuje rosnąco punkty z A i B i zapisuje w tablicy
 void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
-    // Ta funkcja sortuje punkty z A i B do tablicy.
 
-    unsigned ind_tab = 0;
+    unsigned ind_tab = 0; // Indeks tablicy
 
     //Przepisujemy A i B do tablic punktów
     punkt* tab_A = (punkt*) malloc (A.rozmiar * 2 * sizeof(punkt));//Działa
-    przepisz_punkt(A, &tab_A, true);
+    przepisz_punkt(A, &tab_A, /*Czy_A*/ true);
+
     punkt* tab_B = (punkt*) malloc (B.rozmiar * 2 * sizeof(punkt));
-    przepisz_punkt(B, &tab_B, false);
+    przepisz_punkt(B, &tab_B, /*Czy_A*/ false);
     
     int wsk_A = -1;
     int wsk_B = -1;
@@ -166,88 +186,103 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
 
     // Idziemy po kolei. Ta, która jest mniejsza następna będzie wpisana do tablicy.
     while(wsk_A  < (int) A.rozmiar * 2 - 1 || wsk_B  < (int) B.rozmiar * 2 - 1){
-        //printf("Sortujemy punkty. wsk_A = %d, wsk_B = %d, wartoscA = %d, wartoscB = %d\n",
-        //wsk_A, wsk_B, tab_A[wsk_A + 1].wartosc, tab_B[wsk_B + 1].wartosc
-        //);
-        if(wsk_A + 1 >= (int) A.rozmiar * 2)
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1]);
+
+        if(wsk_A + 1 >= (int) A.rozmiar * 2) // Gdy skończyliśmy tablicę A idziemy po B
+            IDZ_PO_B;
         
-        else if(wsk_B + 1 >= (int) B.rozmiar * 2)
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1]);
+        else if(wsk_B + 1 >= (int) B.rozmiar * 2) // Gdy skończyliśmy tablicę B idziemy po A
+            IDZ_PO_A;
         
-        
-        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1]))
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1]);
-        
-        else
-            dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1]);
+        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1])) // Jeśli A jest większy niż B, to idziemy po B
+            IDZ_PO_B;
+        else                                        // Jeśli B jest większy niż A to idziemy po A
+            IDZ_PO_A;
     }
     //printf("Akuku posortuj\n");
     free(tab_A);
     free(tab_B);
 }
 
+// Ta funkcja dodaje do wyniku jeden sumowalny ciąg
 void przypisz_sumowalne(sumowalne_ciagi A, zbior_ary* wynik){
-    // Ta funkcja dodaje do wyniku jeden sumowalny ciąg
-
     wynik->rozmiar ++;
     unsigned ost_elem = wynik->rozmiar - 1; // Wskaźnik na ostatni element w wyniku (ten, który teraz zapisujemy)
     wynik->t_sum[ost_elem] = A;
 }
 
+// Zwraca 1 lub -1. 
 int zmiana_stanu(punkt p, bool czy_minus_B){
     if(czy_minus_B && !p.czy_A){
         return p.poczatek ? -1 : 1; // Jeśli odejmujemy B to dla B zamieniamy - początek to -1 i koniec to 1.
     }
-    return p.poczatek ? 1 : -1;
+    return p.poczatek ? 1 : -1; // Z reguły początek to 1, a koniec to -1.
 }
 
-sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int poczatkowy_stan, bool czy_minus_B){
-    // Ta funkcja łączy dwa sumowalne ciągi teoriomnogościowo.
-    
-    // Tworzymy tablicę z od razu zaalokowaną pamięcią.
-    // Ostateczny Ary_q(wynik) >= max(A.rozmiar, B.rozmiar), więc limit pamięci spełniony.
-    sumowalne_ciagi wynik  = pusty_sumowalny(A.rozmiar + B.rozmiar, A.reszta); // To trzeba poprawić
-
-    // Tablica, która będzie przechowywała posortowane początki i końce A i B
-    punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
-    posortuj(A, B, &sort_punkt); // O(Ary_q(A) + Ary_q(B)
-
-    int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczyny -1.
-    int first = -1;
-    bool first_ustalone = false;
+// Idzie po kolejnych posortowanych punktach i dodaje znalezione ciągi do wyniku
+void znajdz_ciagi_po_punktach(
+    punkt* sort_punkt, unsigned n,
+     sumowalne_ciagi* wynik,
+      int poczatkowy_stan, bool czy_minus_B)
+{
+    int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
+    int first; // Początkowy wyraz ciągu
+    bool first_ustalone = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
 
     // Aktualizujemy 'stan'. Jeśli nie czy_minus_B i jesteśmy na początku A lub B, to stan zwiększamy o 1.
     // W przeciwnym przypadku  zmniejszamy o 1. Jeśli stan zmieniea się z 0 na 1, to jest to początek ciągu dodania.
     // Gdy stan zmienia się z 1 na 0, to znaleźliśmy koniec ciągu, który należy dodać do wyniku.
-    for(unsigned i = 0 ; i < 2 * (A.rozmiar + B.rozmiar) ; ++i){
+    for(unsigned i = 0 ; i < n ; ++i){
         punkt p = sort_punkt[i];
 
         int poprzedni_stan = stan;
         stan += zmiana_stanu(p, czy_minus_B);
 
-        //printf("Poprzedni stan:%d, stan: %d\n", poprzedni_stan, stan);
         if(poprzedni_stan == 0 && stan == 1){
-            first = p.wartosc;
+            first = p.wartosc; // W tym momencie znaleźliśmy początek ciągu
             first_ustalone = true;
         }
-
         else if(poprzedni_stan == 1 && stan == 0){
-            assert(first_ustalone);
+            assert(first_ustalone); // Sprawdzamy, czy wcześniej ustalilismy początek
             if(first <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
-                ciag_ary ciag = {first, p.wartosc - Q.wartosc};
-                przypisz_ciag(ciag, &wynik);
+                ciag_ary ciag = {first, p.wartosc - Q.wartosc}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
+                przypisz_ciag(ciag, &(*wynik));
             }
             first_ustalone = false;
         }
     }
+}
+
+// Ta funkcja łączy dwa sumowalne ciągi teoriomnogościowo.
+sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int poczatkowy_stan, bool czy_minus_B){    
+    // Tworzymy tablicę z od razu zaalokowaną pamięcią. Na koniec zwolnimy nieużywaną pamięć.
+    sumowalne_ciagi wynik  = pusty_sumowalny(A.rozmiar + B.rozmiar + 7, A.reszta); 
+
+    // Tablica, która będzie przechowywała posortowane początki i końce A i B
+    punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
+    posortuj(A, B, &sort_punkt); // O(Ary_q(A) + Ary_q(B)
+
+    znajdz_ciagi_po_punktach(
+        sort_punkt,
+         2 * (A.rozmiar + B.rozmiar),
+        &wynik,
+        poczatkowy_stan,
+        czy_minus_B
+    );
+
     free(sort_punkt);
+
+    ciag_ary* tmp = (ciag_ary*) realloc(wynik.t_ciag, wynik.rozmiar * sizeof (sumowalne_ciagi)); // Zwalniamy niepotrzebną pamięć
+    if(tmp != NULL)
+        wynik.t_ciag = tmp;
+
     return wynik;
 }
 
 // Typ zmiennej - nazwa tej zmiennej to 'A_ROZNE_B'. Zmienna będzie funkcją void, która przyjmuje zadane parametry.
 typedef void (*A_ROZNE_B) (unsigned*, sumowalne_ciagi, zbior_ary*);
 
+// Ta funkcja jest częścią przeszukiwania reszt zbioru. Wykonuje operację na dwóch sumowalnych ciagach
+//  w najtrudniejszym przypadku, czyli kiedy reszty są równe. Przesuwa wskaźniki dalej.
 void rowne_reszty
     (unsigned* wsk_A, unsigned* wsk_B,
     sumowalne_ciagi A, sumowalne_ciagi B,
@@ -255,25 +290,25 @@ void rowne_reszty
     int pocz_stan, bool czy_minus_B
     )
 {
-    // Ta funkcja jest częścią przeszukiwania. Wykonuje operację na dwóch sumowalnych ciagach
-    //  w najtrudniejszym przypadku, czyli kiedy reszty są równe.
     sumowalne_ciagi poloczne_ciagi = polocz_sumowalne(A, B, pocz_stan, czy_minus_B);
     przypisz_sumowalne(poloczne_ciagi, &(*wynik));
     (*wsk_A)++;
     (*wsk_B)++;
 }
 
+// Idzie po wszystkich resztach z dzielenia przez Q zbiorów A i B.
+// W zależności od operacji dodaje lub nie 'samotne' reszty z A i B.
+// W przypadku równych reszt łączy oba sumowalne ciągi funkcją
+// 'połacz_sumowalne' z zadanymi parametrami 'pocz_stan' i 'czy_minus_b'
+// Zwraca końcowy zbiór po operacjach.
 zbior_ary przeszukaj_reszty(
-    unsigned romiar_wyniku,
     zbior_ary A, zbior_ary B,
-    int pocz_stan, bool czy_minus_B,
-    A_ROZNE_B A_wieksze_B,
-    A_ROZNE_B A_mniejsze_B
+    int pocz_stan, bool czy_minus_B, // Parametry łączenia
+    A_ROZNE_B A_wieksze_B, // Czy dodajemy samotne reszty z B?
+    A_ROZNE_B A_mniejsze_B // Czy dodajemy samotne reszty z A?
 ){
-   // Ta funkcja łaczy dwa zbiory w jeden przeszukując ich reszty z dzielenia przez q.
-
-    // Tworzymy pusty zbior o odpowiednim rozmiarze
-    zbior_ary wynik = zbior_pusty(romiar_wyniku); 
+    // Tworzymy pusty zbior o odpowiedniej wielkości.
+    zbior_ary wynik = zbior_pusty(A.rozmiar + B.rozmiar + 7); 
 
     unsigned wsk_A = 0; // Wskaźnik po zbiorze A.
     unsigned wsk_B = 0; // Wskaźnik po zbiorze B.
@@ -301,6 +336,11 @@ zbior_ary przeszukaj_reszty(
     while(wsk_B < B.rozmiar)
          A_wieksze_B(&wsk_B, B.t_sum[wsk_B], &wynik);
 
+    // Zwalniamy pamięć
+    sumowalne_ciagi* tmp = (sumowalne_ciagi*) realloc(wynik.t_sum, wynik.rozmiar * sizeof(sumowalne_ciagi));
+    if(tmp != NULL)
+        wynik.t_sum = tmp;
+
     return wynik;
 }
 
@@ -321,9 +361,8 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
 
     return przeszukaj_reszty
     (
-        A.rozmiar + B.rozmiar, // Tutaj ustawiamy maksymalny rozmiar zwracanego zbioru
         A, B, // Zbiory, które dodajemy
-        0, false, // Parametry funkcji "polacz sumowalne"
+        /*stan_pocz*/ 0, /*czy_minus_B*/ false, // Parametry funkcji "polacz sumowalne"
         A_rozne_B_przypisz, // Uwzgleniamy "samotne" reszty z B
         A_rozne_B_przypisz  // Uwzgleniamy "samotne" reszty z A
     );
@@ -332,9 +371,8 @@ zbior_ary suma(zbior_ary A, zbior_ary B){
 // Daje w wyniku zbior A \ B.
 zbior_ary roznica(zbior_ary A, zbior_ary B){
     return przeszukaj_reszty(
-        A.rozmiar, 
         A, B,
-        0, true, // Parametry funkcji "polacz sumowalne"
+        /*stan_pocz*/ 0, /*czy_minus_B*/ true, // Parametry funkcji "polacz sumowalne"
         A_rozne_B_NIE_przypisz, // "Samotnych" reszt z B nie uwzględniamy
         A_rozne_B_przypisz      // Uwzgleniamy "samotne" reszty z A
     );
@@ -343,9 +381,8 @@ zbior_ary roznica(zbior_ary A, zbior_ary B){
 // Daje w wyniku zbior reprezentujacy czesc wspolna zbiorow A i B.
 zbior_ary iloczyn(zbior_ary A, zbior_ary B){
     return przeszukaj_reszty(
-        A.rozmiar + B.rozmiar,
         A, B,
-        -1, false, // Parametry funkcji "polacz sumowalne"
+        /*stan_pocz*/ -1, /*czy_minus_B*/ false, // Parametry funkcji "polacz sumowalne"
         A_rozne_B_NIE_przypisz, // "Samotnych" reszt z B nie uwzględniamy
         A_rozne_B_NIE_przypisz  // "Samotnych" reszt z A nie uwzględniamy
     );
@@ -353,14 +390,16 @@ zbior_ary iloczyn(zbior_ary A, zbior_ary B){
 
 // Daje w wyniku sumowalne_ciagi o tej samej reszcie z dzielenia przez Q co b, albo puste w czasie O(log(A.rozmiar))
 sumowalne_ciagi binsearch_reszt(zbior_ary A, int b){
+    if(A.rozmiar == 0)
+        return pusty_sumowalny(0, modulo(b));
     int pocz = -1;
-    int kon = (int) A.rozmiar;
+    int kon = (int) A.rozmiar; // Definiujemy wskaźniki
 
     while(kon - pocz > 1){
         int srod = (pocz + kon) / 2;
         assert(srod != pocz && srod != kon); // Zapobiega zapętleniu w nieskończoność.
         if(A.t_sum[srod].reszta < modulo(b))
-            pocz = srod;
+            pocz = srod; // Początek zawsze mniejszy
         else 
             kon = srod;
     }
@@ -381,13 +420,15 @@ bool binsearch_ciagow(sumowalne_ciagi A, int b){
 
     if(A.rozmiar == 0)
         return false;
+
     int pocz = -1;
-    int kon = (int) A.rozmiar;
+    int kon = (int) A.rozmiar; // Definiujemy wskaźniki
+
     while(kon - pocz > 1){
         int srod = (pocz + kon) / 2;
         assert(srod != pocz && srod != kon); // Zapobiega zapętleniu w nieskończoność.
         if(A.t_ciag[srod].last < b)
-            pocz = srod;
+            pocz = srod; // pocz zawsze mniejszy
         else
             kon = srod;
     }
@@ -414,7 +455,7 @@ unsigned moc(zbior_ary A){
         sumowalne_ciagi S = A.t_sum[i];
         for(unsigned j = 0 ; j < S.rozmiar ; ++j){
             ciag_ary C = S.t_ciag[j];
-            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc);
+            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
         }
     }
     return moc;
@@ -425,7 +466,7 @@ unsigned ary(zbior_ary A){
     unsigned ary_q = 0;
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         sumowalne_ciagi S = A.t_sum[i];
-        ary_q += S.rozmiar;
+        ary_q += S.rozmiar; // Dodajemy ilość ciągów dla każdych sumowalnych ciągów - o tej samej reszcie.
     }
     return ary_q;
 }

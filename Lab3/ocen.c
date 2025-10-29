@@ -33,8 +33,6 @@ int main() {
   // G = {1, 2, 4, 7, 9, 12, 19}
   zbior_ary G = roznica(E, F);
 
-  wypisz_zbior(G);
-  
   assert(ary(G) == 4);
   assert(nalezy(G, 4));
   assert(!nalezy(G, 5));
