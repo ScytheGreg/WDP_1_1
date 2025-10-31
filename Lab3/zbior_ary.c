@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #define IDZ_PO_A dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1])
 #define IDZ_PO_B dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1])
@@ -127,7 +129,7 @@ void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
 
 // Struktura, która przechowuje początki lub końce przedziałów.
 typedef struct punkt{
-    int wartosc; // Miejsce na osi liczbowej
+    int64_t wartosc; // Miejsce na osi liczbowej
     bool czy_A; // Rozróżnia dwa zbiory: A i B
     bool poczatek; // Rozróżnia, czy jest to początek ciągu, czy koniec
 } punkt;
@@ -142,10 +144,10 @@ bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
     return a.wartosc > b.wartosc; // Sortujemy po wartościach.
 }
 
-// Wypisuje punkt
-void wypisz_punkt(punkt A){
-    printf("Punkt:%d, %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
-}
+// // Wypisuje punkt
+// void wypisz_punkt(punkt A){
+//     printf("Punkt:" PRId64 ", %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
+// }
 
 // Przepisuje wszyskie punkty z A do 'punkt'ów 
 void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
@@ -154,7 +156,7 @@ void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
         punkt poczatek = {A.t_ciag[i].first, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
         //wypisz_punkt(poczatek);
-        punkt koniec = {A.t_ciag[i].last + Q.wartosc, czy_A, false};
+        punkt koniec = {(int64_t) A.t_ciag[i].last + (int64_t) Q.wartosc, czy_A, false};
         (*tab_A)[2 * i + 1] = koniec;
         //wypisz_punkt(koniec);
     }
@@ -225,7 +227,7 @@ void znajdz_ciagi_po_punktach(
       int poczatkowy_stan, bool czy_minus_B)
 {
     int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
-    int first; // Początkowy wyraz ciągu
+    int64_t first; // Początkowy wyraz ciągu
     bool first_ustalone = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
 
     // Aktualizujemy 'stan'. Jeśli nie czy_minus_B i jesteśmy na początku A lub B, to stan zwiększamy o 1.
@@ -244,7 +246,7 @@ void znajdz_ciagi_po_punktach(
         else if(poprzedni_stan == 1 && stan == 0){
             assert(first_ustalone); // Sprawdzamy, czy wcześniej ustalilismy początek
             if(first <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
-                ciag_ary ciag = {first, p.wartosc - Q.wartosc}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
+                ciag_ary ciag = {(int) first, (int) (p.wartosc - (int64_t) Q.wartosc)}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
                 przypisz_ciag(ciag, &(*wynik));
             }
             first_ustalone = false;
@@ -455,7 +457,7 @@ unsigned moc(zbior_ary A){
         sumowalne_ciagi S = A.t_sum[i];
         for(unsigned j = 0 ; j < S.rozmiar ; ++j){
             ciag_ary C = S.t_ciag[j];
-            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
+            moc += (unsigned) (((int64_t) C.last - (int64_t) C.first + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
         }
     }
     return moc;

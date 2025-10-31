@@ -33,6 +33,9 @@ typedef struct zbior_ary {
 
 } zbior_ary;
 
+void przypisz_sumowalne(sumowalne_ciagi A, zbior_ary* wynik);
+
+
 // Wypisuje zbiór 
 void wypisz_zbior(zbior_ary A);
 
