@@ -6,7 +6,7 @@
 
 # Nie ignoruj plików .c
 !*.c
-!*task.txt
+!*.txt
 !.gitignore
 !*Makefile
 !*.h
