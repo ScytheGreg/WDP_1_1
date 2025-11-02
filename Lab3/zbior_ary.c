@@ -188,15 +188,15 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     // Idziemy po kolei. Ta, która jest mniejsza następna będzie wpisana do tablicy.
     while(wsk_A  < (int) A.rozmiar * 2 - 1 || wsk_B  < (int) B.rozmiar * 2 - 1){
 
-        if(wsk_A + 1 >= (int) A.rozmiar * 2) // Gdy skończyliśmy tablicę A idziemy po B
+        if(wsk_A + 1 >= (int) A.rozmiar * 2) // Gdy skończyliśmy tablicę A dodajemy punkt z B
             DODAJ_PUNKT_Z_B;
         
-        else if(wsk_B + 1 >= (int) B.rozmiar * 2) // Gdy skończyliśmy tablicę B idziemy po A
+        else if(wsk_B + 1 >= (int) B.rozmiar * 2) // Gdy skończyliśmy tablicę B dodajemy punkt z A
             DODAJ_PUNKT_Z_A;
         
-        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1])) // Jeśli A jest większy niż B, to idziemy po B
+        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1])) // Jeśli A jest większy niż B, to dodajemy punkt z B
             DODAJ_PUNKT_Z_B;
-        else                                        // Jeśli B jest większy niż A to idziemy po A
+        else                                        // Jeśli B jest większy niż A to dodajemy punkt z A
             DODAJ_PUNKT_Z_A;
     }
     //printf("Akuku posortuj\n");
