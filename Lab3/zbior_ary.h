@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // Różnica ciągu arytmetycznego, stała dla całego zadania.
-typedef struct Q_struct{ 
+typedef struct Q_struct { 
   int wartosc;
   bool czy_ustawione;
 } Q_struct;
@@ -12,8 +12,8 @@ typedef struct Q_struct{
 // Pojedynczy ciąg arytmetyczny
 typedef struct ciag_ary {
 
-  int first; // Pierszy element ciągu
-  int last; // Osatni element ciągu.
+  int poczatek; // Pierszy element ciągu
+  int koniec; // Osatni element ciągu.
 } ciag_ary;
 
 // Zbiór ciągów o tej samej reszcie z dzielenia przez q
