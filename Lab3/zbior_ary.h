@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // Różnica ciągu arytmetycznego, stała dla całego zadania.
-typedef struct Q_struct{ 
+typedef struct Q_struct { 
   int wartosc;
   bool czy_ustawione; // Pomaga sprawdzić, czy dane na wejściu spełniają warunek zadania
 } Q_struct;
@@ -12,8 +12,8 @@ typedef struct Q_struct{
 // Pojedynczy ciąg arytmetyczny
 typedef struct ciag_ary {
 
-  int first; // Pierszy element ciągu
-  int last; // Osatni element ciągu.
+  int poczotek; // Pierszy element ciągu
+  int koniec; // Osatni element ciągu.
 } ciag_ary;
 
 // Zbiór ciągów o tej samej reszcie z dzielenia przez q
@@ -33,6 +33,18 @@ typedef struct zbior_ary {
 
 } zbior_ary;
 
+<<<<<<< HEAD
+=======
+void przypisz_sumowalne(sumowalne_ciagi A, zbior_ary* wynik);
+
+
+// Wypisuje zbiór 
+void wypisz_zbior(zbior_ary A);
+
+// Zwraca nieujemne modulo a przez q
+int modulo(int a);
+
+>>>>>>> bug_fix
 /* Najlepiej nie modyfikowac nic ponizej. */
 
 // Funkcja daje w wyniku zbior reprezentujacy ciag arytmetyczny o elemencie poczatkowym a, końcowym b i roznicy q>0, tj. {a,a+q,...,b}.

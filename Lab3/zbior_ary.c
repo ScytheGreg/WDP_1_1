@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-
-#define IDZ_PO_A dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1])
-#define IDZ_PO_B dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1])
+#include <stdint.h>
+#include <inttypes.h>
 
 
 //Zmienna globalna (bez niej nie da się zrobić zadania)
@@ -41,8 +40,8 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
 
     // Najpierw tworzymy najmniejszą jednostkę - ciąg arytmetyczny
     ciag_ary pewien_ciag ={ 
-        .first = a,
-        .last = b
+        .poczotek = a,
+        .koniec = b
      };
 
      ciag_ary* t_ciag = (ciag_ary*) malloc (sizeof(ciag_ary)); // Tablica zawierająca ten ciąg.
@@ -93,6 +92,34 @@ sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     return pusty;
 }
 
+<<<<<<< HEAD
+=======
+// Kolejne funkcje wypisują odpiwiednie struktury na wyjście standardowe
+void wypisz_ciag(ciag_ary pewien_ciag){
+    printf("C: ");
+    for(int a = pewien_ciag.poczotek ; a <= pewien_ciag.koniec ; a += Q.wartosc){
+        printf("%d ", a);
+    }
+}
+
+void wypisz_sumowalny_ciag(sumowalne_ciagi sum_ciagi){
+    for(unsigned i = 0 ; i < sum_ciagi.rozmiar ; ++i){
+        ciag_ary pewien_ciag = sum_ciagi.t_ciag[i];
+        wypisz_ciag(pewien_ciag);
+        printf(" ");
+    }
+}
+
+void wypisz_zbior(zbior_ary A){
+    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
+        sumowalne_ciagi pewien_sumowalny_ciag = A.t_sum[i];
+        wypisz_sumowalny_ciag(pewien_sumowalny_ciag);
+        printf("\n");
+    }
+    printf("\n");
+}
+
+>>>>>>> bug_fix
 // Zwiększa 'rozmiar' pewnego sumowalnego ciągu o 1 i wpisuje tam pewien ciąg arytmetyczny
 void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
     A -> rozmiar ++;
@@ -102,7 +129,7 @@ void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
 
 // Struktura, która przechowuje początki lub końce przedziałów.
 typedef struct punkt{
-    int wartosc; // Miejsce na osi liczbowej
+    int64_t wartosc; // Miejsce na osi liczbowej
     bool czy_A; // Rozróżnia dwa zbiory: A i B
     bool poczatek; // Rozróżnia, czy jest to początek ciągu, czy koniec
 } punkt;
@@ -117,14 +144,27 @@ bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
     return a.wartosc > b.wartosc; // Sortujemy po wartościach.
 }
 
+<<<<<<< HEAD
+=======
+// // Wypisuje punkt
+// void wypisz_punkt(punkt A){
+//     printf("Punkt:" PRId64 ", %d, %d\n", A.wartosc, A.czy_A, A.poczatek);
+// }
+
+>>>>>>> bug_fix
 // Przepisuje wszyskie punkty z A do 'punkt'ów 
 void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
 
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
-        punkt poczatek = {A.t_ciag[i].first, czy_A, true};
+        punkt poczatek = {A.t_ciag[i].koniec, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
+<<<<<<< HEAD
 
         punkt koniec = {A.t_ciag[i].last + Q.wartosc, czy_A, false};
+=======
+        //wypisz_punkt(poczatek);
+        punkt koniec = {(int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc, czy_A, false};
+>>>>>>> bug_fix
         (*tab_A)[2 * i + 1] = koniec;
     }
 }
@@ -135,6 +175,9 @@ void dodaj_punkt(punkt** tab, unsigned* ind, int* wsk_A, punkt wartosc){
     (*wsk_A)++;
     (*ind)++;
 }
+
+#define DODAJ_PUNKT_Z_A dodaj_punkt(&(*tab), &ind_tab, &wsk_A, tab_A[wsk_A + 1])
+#define DODAJ_PUNKT_Z_B dodaj_punkt(&(*tab), &ind_tab, &wsk_B, tab_B[wsk_B + 1])
 
 // Sortuje rosnąco punkty z A i B i zapisuje w tablicy
 void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
@@ -154,16 +197,16 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
     // Idziemy po kolei. Ta, która jest mniejsza następna będzie wpisana do tablicy.
     while(wsk_A  < (int) A.rozmiar * 2 - 1 || wsk_B  < (int) B.rozmiar * 2 - 1){
 
-        if(wsk_A + 1 >= (int) A.rozmiar * 2) // Gdy skończyliśmy tablicę A idziemy po B
-            IDZ_PO_B;
+        if(wsk_A + 1 >= (int) A.rozmiar * 2) // Gdy skończyliśmy tablicę A dodajemy punkt z B
+            DODAJ_PUNKT_Z_B;
         
-        else if(wsk_B + 1 >= (int) B.rozmiar * 2) // Gdy skończyliśmy tablicę B idziemy po A
-            IDZ_PO_A;
+        else if(wsk_B + 1 >= (int) B.rozmiar * 2) // Gdy skończyliśmy tablicę B dodajemy punkt z A
+            DODAJ_PUNKT_Z_A;
         
-        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1])) // Jeśli A jest większy niż B, to idziemy po B
-            IDZ_PO_B;
-        else                                        // Jeśli B jest większy niż A to idziemy po A
-            IDZ_PO_A;
+        else if(punkt_a_wiekszy_niz_b(tab_A[wsk_A + 1], tab_B[wsk_B + 1])) // Jeśli A jest większy niż B, to dodajemy punkt z B
+            DODAJ_PUNKT_Z_B;
+        else                                        // Jeśli B jest większy niż A to dodajemy punkt z A
+            DODAJ_PUNKT_Z_A;
     }
     free(tab_A);
     free(tab_B);
@@ -188,11 +231,16 @@ int zmiana_stanu(punkt p, bool czy_minus_B){
 void znajdz_ciagi_po_punktach(
     punkt* sort_punkt, unsigned n,// 'n' - maksymalny indeks
      sumowalne_ciagi* wynik,
+<<<<<<< HEAD
     int poczatkowy_stan, bool czy_minus_B) // Parametry
 {
+=======
+    int poczatkowy_stan, bool czy_minus_B
+){
+>>>>>>> bug_fix
     int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
-    int first; // Początkowy wyraz ciągu
-    bool first_ustalone = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
+    int64_t poczatek; // Początkowy wyraz ciągu
+    bool poczatek_ustalony = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
 
     // Aktualizujemy 'stan'. Jeśli nie czy_minus_B i jesteśmy na początku A lub B, to stan zwiększamy o 1.
     // W przeciwnym przypadku  zmniejszamy o 1. Jeśli stan zmieniea się z 0 na 1, to jest to początek ciągu dodania.
@@ -204,16 +252,16 @@ void znajdz_ciagi_po_punktach(
         stan += zmiana_stanu(p, czy_minus_B);
 
         if(poprzedni_stan == 0 && stan == 1){
-            first = p.wartosc; // W tym momencie znaleźliśmy początek ciągu
-            first_ustalone = true;
+            poczatek = p.wartosc; // W tym momencie znaleźliś  my początek ciągu
+            poczatek_ustalony = true;
         }
         else if(poprzedni_stan == 1 && stan == 0){
-            assert(first_ustalone); // Sprawdzamy, czy wcześniej ustalilismy początek
-            if(first <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
-                ciag_ary ciag = {first, p.wartosc - Q.wartosc}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
+            assert(poczatek_ustalony); // Sprawdzamy, czy wcześniej ustalilismy początek
+            if(poczatek <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
+                ciag_ary ciag = {(int) poczatek, (int) (p.wartosc - (int64_t) Q.wartosc)}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
                 przypisz_ciag(ciag, &(*wynik));
             }
-            first_ustalone = false;
+            poczatek_ustalony = false;
         }
     }
 }
@@ -254,8 +302,7 @@ void rowne_reszty
     sumowalne_ciagi A, sumowalne_ciagi B,
     zbior_ary* wynik,
     int pocz_stan, bool czy_minus_B
-    )
-{
+){
     sumowalne_ciagi poloczne_ciagi = polocz_sumowalne(A, B, pocz_stan, czy_minus_B);
     przypisz_sumowalne(poloczne_ciagi, &(*wynik));
     (*wsk_A)++;
@@ -310,13 +357,21 @@ zbior_ary przeszukaj_reszty(
     return wynik;
 }
 
+<<<<<<< HEAD
 // Ta funkcja jest częscią przeszukiwania. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
+=======
+// Ta funkcja jest częscią przeszukiwania dla SUMY. Dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
+>>>>>>> bug_fix
 void A_rozne_B_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     przypisz_sumowalne(B, &(*wynik));
     (*wsk_B)++;
 }
 
+<<<<<<< HEAD
 // Ta funkcja jest częscią przeszukiwania. NIE dodaje do wyniku sumowalnego ciągu ze zbioru i przesuwa wskaźnik.
+=======
+// Ta funkcja jest częscią przeszukiwania dla SUMY. NIE dodaje do wyniku sumowalny ciąg ze zbioru i przesuwa wskaźnik.
+>>>>>>> bug_fix
 void A_rozne_B_NIE_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     (*wsk_B)++;
     B = (*wynik).t_sum[0]; // To nic nie robi. Dla kompilatora
@@ -396,7 +451,7 @@ bool binsearch_ciagow(sumowalne_ciagi A, int b){
     while(kon - pocz > 1){
         int srod = (pocz + kon) / 2;
         assert(srod != pocz && srod != kon); // Zapobiega zapętleniu w nieskończoność.
-        if(A.t_ciag[srod].last < b)
+        if(A.t_ciag[srod].koniec < b)
             pocz = srod; // pocz zawsze mniejszy
         else
             kon = srod;
@@ -406,7 +461,7 @@ bool binsearch_ciagow(sumowalne_ciagi A, int b){
     if(pocz == (int) A.rozmiar - 1) // Jeśli każdy przedział jest mniejszy
         return false;
 
-    if(A.t_ciag[pocz + 1].first <= b && b <= A.t_ciag[pocz + 1].last) // Jeśli się zawiera w kolejnym przedziale
+    if(A.t_ciag[pocz + 1].poczotek <= b && b <= A.t_ciag[pocz + 1].koniec) // Jeśli się zawiera w kolejnym przedziale
         return true;
 
     return false;
@@ -425,7 +480,7 @@ unsigned moc(zbior_ary A){
         sumowalne_ciagi S = A.t_sum[i];
         for(unsigned j = 0 ; j < S.rozmiar ; ++j){
             ciag_ary C = S.t_ciag[j];
-            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
+            moc += (unsigned) (((int64_t) C.koniec - (int64_t) C.poczotek + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
         }
     }
     return moc;
