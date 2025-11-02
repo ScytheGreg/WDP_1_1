@@ -122,7 +122,7 @@ void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
         punkt poczatek = {A.t_ciag[i].poczatek, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
         //wypisz_punkt(poczatek);
-        punkt koniec = {(int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc, czy_A, false};
+        punkt koniec = {(int) ((int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc), czy_A, false};
         (*tab_A)[2 * i + 1] = koniec;
     }
 }
