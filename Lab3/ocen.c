@@ -1,17 +1,9 @@
 #include "zbior_ary.h"
 #include <stdio.h>
 #include <assert.h>
-#include <limits.h>
-#include <stdlib.h>
-
-
 
 int main() {
-<<<<<<< HEAD
     // A = {2, 7, 12}
-=======
-  // A = {2, 7, 12}
->>>>>>> bug_fix
   zbior_ary A = ciag_arytmetyczny(2, 5, 12);
   assert(moc(A) == 3);
   assert(ary(A) == 1);
@@ -28,8 +20,6 @@ int main() {
   zbior_ary F = singleton(14);
   // G = {1, 2, 4, 7, 9, 12, 19}
   zbior_ary G = roznica(E, F);
-  
-  wypisz_zbior(G);
 
   assert(ary(G) == 4);
   assert(nalezy(G, 4));
@@ -41,7 +31,6 @@ int main() {
   // I = {}
   zbior_ary I = iloczyn(H, A);
   assert(moc(I) == 0);
-  return 0;
 
   return 0;
 }
