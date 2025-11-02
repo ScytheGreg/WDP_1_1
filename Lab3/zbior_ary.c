@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 
@@ -90,34 +91,6 @@ sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     return pusty;
 }
 
-<<<<<<< HEAD
-=======
-// Kolejne funkcje wypisują odpiwiednie struktury na wyjście standardowe
-void wypisz_ciag(ciag_ary pewien_ciag){
-    printf("C: ");
-    for(int a = pewien_ciag.poczatek ; a <= pewien_ciag.koniec ; a += Q.wartosc){
-        printf("%d ", a);
-    }
-}
-
-void wypisz_sumowalny_ciag(sumowalne_ciagi sum_ciagi){
-    for(unsigned i = 0 ; i < sum_ciagi.rozmiar ; ++i){
-        ciag_ary pewien_ciag = sum_ciagi.t_ciag[i];
-        wypisz_ciag(pewien_ciag);
-        printf(" ");
-    }
-}
-
-void wypisz_zbior(zbior_ary A){
-    for(unsigned i = 0 ; i < A.rozmiar ; ++i){
-        sumowalne_ciagi pewien_sumowalny_ciag = A.t_sum[i];
-        wypisz_sumowalny_ciag(pewien_sumowalny_ciag);
-        printf("\n");
-    }
-    printf("\n");
-}
-
->>>>>>> Peer_review
 // Zwiększa 'rozmiar' pewnego sumowalnego ciągu o 1 i wpisuje tam pewien ciąg arytmetyczny
 void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
     A -> rozmiar ++;
@@ -148,13 +121,8 @@ void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
         punkt poczatek = {A.t_ciag[i].poczatek, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
-<<<<<<< HEAD
-
-        punkt koniec = {A.t_ciag[i].last + Q.wartosc, czy_A, false};
-=======
         //wypisz_punkt(poczatek);
         punkt koniec = {(int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc, czy_A, false};
->>>>>>> Peer_review
         (*tab_A)[2 * i + 1] = koniec;
     }
 }
@@ -221,19 +189,11 @@ int zmiana_stanu(punkt p, bool czy_minus_B){
 void znajdz_ciagi_po_punktach(
     punkt* sort_punkt, unsigned n,// 'n' - maksymalny indeks
      sumowalne_ciagi* wynik,
-<<<<<<< HEAD
-    int poczatkowy_stan, bool czy_minus_B) // Parametry
-{
-    int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
-    int first; // Początkowy wyraz ciągu
-    bool first_ustalone = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
-=======
       int poczatkowy_stan, bool czy_minus_B
 ){
     int stan = poczatkowy_stan; // Dla sumy i różnicy 0, dla iloczynu -1.
     int64_t poczatek; // Początkowy wyraz ciągu
     bool poczatek_ustalony = false; // Sprawdzamy, czy ustaliliśmy pierwszy wyraz ciągu przed ostatnim.
->>>>>>> Peer_review
 
     // Aktualizujemy 'stan'. Jeśli nie czy_minus_B i jesteśmy na początku A lub B, to stan zwiększamy o 1.
     // W przeciwnym przypadku  zmniejszamy o 1. Jeśli stan zmieniea się z 0 na 1, to jest to początek ciągu dodania.
@@ -249,15 +209,9 @@ void znajdz_ciagi_po_punktach(
             poczatek_ustalony = true;
         }
         else if(poprzedni_stan == 1 && stan == 0){
-<<<<<<< HEAD
-            assert(first_ustalone); // Sprawdzamy, czy wcześniej ustalilismy początek
-            if(first <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
-                ciag_ary ciag = {first, p.wartosc - Q.wartosc}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
-=======
             assert(poczatek_ustalony); // Sprawdzamy, czy wcześniej ustalilismy początek
             if(poczatek <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
                 ciag_ary ciag = {(int) poczatek, (int) (p.wartosc - (int64_t) Q.wartosc)}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
->>>>>>> Peer_review
                 przypisz_ciag(ciag, &(*wynik));
             }
             poczatek_ustalony = false;
@@ -322,8 +276,8 @@ zbior_ary przeszukaj_reszty(
     // Tworzymy pusty zbior o odpowiedniej wielkości.
     zbior_ary wynik = zbior_pusty(A.rozmiar + B.rozmiar + 7); 
 
-    unsigned wsk_A = 0; // Wskaźnik po zbiorze A.
-    unsigned wsk_B = 0; // Wskaźnik po zbiorze B.
+    unsigned wsk_A = 0;
+    unsigned wsk_B = 0; 
 
     // Zakładamy, że reszty w zbiorach A i B są posortowane. Idziemy wskaźnikami po kolei, zwiększając mniejszą resztę.
     while(wsk_A < A.rozmiar && wsk_B < B.rozmiar){
@@ -471,11 +425,7 @@ unsigned moc(zbior_ary A){
         sumowalne_ciagi S = A.t_sum[i];
         for(unsigned j = 0 ; j < S.rozmiar ; ++j){
             ciag_ary C = S.t_ciag[j];
-<<<<<<< HEAD
-            moc += (unsigned) ((C.last - C.first + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
-=======
             moc += (unsigned) (((int64_t) C.koniec - (int64_t) C.poczatek + Q.wartosc) / Q.wartosc); // Dodajemy moc każdego ciągu.
->>>>>>> Peer_review
         }
     }
     return moc;

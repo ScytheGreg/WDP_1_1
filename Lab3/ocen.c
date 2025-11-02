@@ -1,15 +1,9 @@
 #include <stdbool.h>
 #include <assert.h>
-<<<<<<< HEAD
-
-int main() {
-    // A = {2, 7, 12}
-=======
 #include "zbior_ary.h"
 
 int main() {
   // A = {2, 7, 12}
->>>>>>> Peer_review
   zbior_ary A = ciag_arytmetyczny(2, 5, 12);
   assert(moc(A) == 3);
   assert(ary(A) == 1);
@@ -26,10 +20,6 @@ int main() {
   zbior_ary F = singleton(14);
   // G = {1, 2, 4, 7, 9, 12, 19}
   zbior_ary G = roznica(E, F);
-<<<<<<< HEAD
-
-=======
->>>>>>> Peer_review
   assert(ary(G) == 4);
   assert(nalezy(G, 4));
   assert(!nalezy(G, 5));
@@ -40,9 +30,5 @@ int main() {
   // I = {}
   zbior_ary I = iloczyn(H, A);
   assert(moc(I) == 0);
-<<<<<<< HEAD
-
-=======
->>>>>>> Peer_review
   return 0;
 }
