@@ -319,8 +319,9 @@ void A_rozne_B_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
 // Ta funkcja jest częscią przeszukiwania. NIE dodaje do wyniku sumowalnego ciągu ze zbioru i przesuwa wskaźnik.
 void A_rozne_B_NIE_przypisz(unsigned* wsk_B, sumowalne_ciagi B, zbior_ary* wynik){
     (*wsk_B)++;
-    B = (*wynik).t_sum[0]; // To nic nie robi. Dla kompilatora
-    assert((int) B.rozmiar > -1); // To nic nie robi. Dla kompilatora
+    if((int) B.rozmiar > -1){
+        B = (*wynik).t_sum[0];
+    } // To nic nie robi. Dla kompilatora
 }
 
 // Daje w wyniku zbior reprezentujacy teoriomnogosciowa sume zbiorow A i B.
