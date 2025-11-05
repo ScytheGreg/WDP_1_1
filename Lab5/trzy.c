@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
+#include <stdbool.h>
+#include <limits.h>
 const unsigned eps = 7; // Margines rozmiaru tablicy motele[]
 
 typedef struct motel{
@@ -30,18 +31,31 @@ void wczytaj_dane(int* n, motel* motele[] ){
     }
 }
 
-void pogrupuj_motele(int n, motel motele[], grupa_moteli* pogrupowane_motele[], int* ilosc_grup){
+void nowa_siec(int* a, int* b, int* c, int nr_sieci){
+    if(*a == 0)
+        *a = nr_sieci;
+    else if(*a != nr_sieci && *b == 0)
+        *b = nr_sieci;
+    else if(*a != nr_sieci && *b != nr_sieci && *c == 0)
+        *c = nr_sieci;
+}
+
+bool pogrupuj_motele(int n, motel motele[], grupa_moteli* pogrupowane_motele[], int* ilosc_grup){
 
     assert(n > 0);
 
     *pogrupowane_motele = (grupa_moteli*) malloc ((unsigned) n * sizeof(grupa_moteli));
-    *ilosc_grup = 1;
+    *ilosc_grup = 0;
+
+    int siec_1 = 0, siec_2 = 0, siec_3 = 0;
 
     int poczatek_grupy = 0;
     motel zero = {0, 0};
     motele[n] = zero; // Motel za ostatnim z innej grupy
 
     for(int i = 0 ; i < n  ; ++i){
+        nowa_siec(&siec_1, &siec_2, &siec_3, motele[i].nr_sieci);
+
         if(motele[i].nr_sieci != motele[i + 1].nr_sieci){
             grupa_moteli grupa = {
                 /*nr_sieci*/ motele[i].nr_sieci,
@@ -49,7 +63,8 @@ void pogrupuj_motele(int n, motel motele[], grupa_moteli* pogrupowane_motele[], 
                 /*ind_pierwszego*/ poczatek_grupy,
                 /*ind_ostatniego*/ i
             };
-            *pogrupowane_motele[*ilosc_grup - 1] = grupa;
+            assert(*ilosc_grup < n);
+            (*pogrupowane_motele)[*ilosc_grup] = grupa;
             (*ilosc_grup)++;
             poczatek_grupy = i + 1;
         }
@@ -58,14 +73,54 @@ void pogrupuj_motele(int n, motel motele[], grupa_moteli* pogrupowane_motele[], 
     grupa_moteli* tmp = (grupa_moteli*) realloc(*pogrupowane_motele, (unsigned) *ilosc_grup * sizeof(grupa_moteli));
     if(tmp != NULL)
         *pogrupowane_motele = tmp;
+
+    return siec_3 != 0;
+}
+
+int min(int a, int b){
+    if( a > b)
+        return b;
+    return a;
+}
+
+int max(int a, int b){
+    if(a >= b)
+        return a;
+    return b;
+}
+
+int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
+    
+    int lewy = motele[a.ind_ostatniego].odl_od_pocz;
+    int prawy = motele[c.ind_pierwszego].odl_od_pocz;
+
+    int Min = INT_MAX;
+
+    for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
+        int srodek = motele[i].odl_od_pocz;
+        Min = min(Min, max(srodek - lewy + 1, prawy - srodek + 1));
+    }
+    return Min;
 }
 
 int najblizsa(int n, motel motele[]){
 
-    grupa_moteli* pogrupowane_motele;
+    grupa_moteli* grupy;
     int ilosc_grup;
-    pogrupuj_motele(n, motele , &pogrupowane_motele, &ilosc_grup);
-    return 0;
+    if(pogrupuj_motele(n, motele , &grupy, &ilosc_grup) == false)
+        return 0;
+
+    printf("Ilosc grup: %d\n", ilosc_grup);
+
+    int wynik = INT_MAX;
+    //Przeszukaj_po_trzy_grupy
+    // Jeżeli istnieją trzy grupy o parami różnych sieciach, to będą istiały trzy kolejne grupy o parami różnych sieciach
+    // ,wśród których jest miniumum.
+    for(int i = 0 ; i + 2 < n ; ++i){
+        wynik = min(wynik, min_z_maks(grupy[i], grupy[i + 1], grupy[i + 2], motele));
+    }
+
+    return wynik;
 }
 
 int najdalsza(int n, motel t[]){
@@ -77,6 +132,6 @@ int main(){
     motel* motele;
     wczytaj_dane(&n, &motele);
 
-    printf("%d %d", najblizsa(n, motele), najdalsza(n, motele));
+    printf("%d %d\n", najblizsa(n, motele), najdalsza(n, motele));
     return 0;
 }
