@@ -90,6 +90,9 @@ int max(int a, int b){
 }
 
 int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
+
+    if(a.nr_sieci == c.nr_sieci)
+        return INT_MAX;
     
     int lewy = motele[a.ind_ostatniego].odl_od_pocz;
     int prawy = motele[c.ind_pierwszego].odl_od_pocz;
@@ -98,33 +101,27 @@ int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
 
     for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
         int srodek = motele[i].odl_od_pocz;
-        Min = min(Min, max(srodek - lewy + 1, prawy - srodek + 1));
+        Min = min(Min, max(srodek - lewy, prawy - srodek));
+        //printf("i: %d, Min: %d\n", i, Min);
     }
     return Min;
 }
 
-int najblizsa(int n, motel motele[]){
-
-    grupa_moteli* grupy;
-    int ilosc_grup;
-    if(pogrupuj_motele(n, motele , &grupy, &ilosc_grup) == false)
-        return 0;
-
-    printf("Ilosc grup: %d\n", ilosc_grup);
+int najblizsa(motel motele[], grupa_moteli grupy[], int ilosc_grup){
 
     int wynik = INT_MAX;
     //Przeszukaj_po_trzy_grupy
     // Jeżeli istnieją trzy grupy o parami różnych sieciach, to będą istiały trzy kolejne grupy o parami różnych sieciach
     // ,wśród których jest miniumum.
-    for(int i = 0 ; i + 2 < n ; ++i){
+    for(int i = 0 ; i + 2 < ilosc_grup ; ++i){
         wynik = min(wynik, min_z_maks(grupy[i], grupy[i + 1], grupy[i + 2], motele));
     }
 
     return wynik;
 }
 
-int najdalsza(int n, motel t[]){
-    return t[n - 1].odl_od_pocz;
+int najdalsza(int n, motel motele[], grupa_moteli grupy[], int ilosc_grup){
+    return motele[n - 1].odl_od_pocz + motele[grupy[ilosc_grup - 1].ind_pierwszego].odl_od_pocz;
 }
 
 int main(){
@@ -132,6 +129,16 @@ int main(){
     motel* motele;
     wczytaj_dane(&n, &motele);
 
-    printf("%d %d\n", najblizsa(n, motele), najdalsza(n, motele));
+    grupa_moteli* grupy;
+    int ilosc_grup;
+    if(pogrupuj_motele(n, motele , &grupy, &ilosc_grup) == false){
+        printf("0 0\n");
+        return 0;
+    }
+
+    //printf("Ilosc grup: %d\n", ilosc_grup);
+
+
+    printf("%d %d\n", najblizsa(motele, grupy, ilosc_grup), najdalsza(n, motele, grupy, ilosc_grup));
     return 0;
 }
