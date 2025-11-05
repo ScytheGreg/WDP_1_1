@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <inttypes.h>
 
 
 //Zmienna globalna (bez niej nie da się zrobić zadania)
@@ -44,6 +46,7 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
      };
 
      ciag_ary* t_ciag = (ciag_ary*) malloc (sizeof(ciag_ary)); // Tablica zawierająca ten ciąg.
+     assert(t_ciag !=  NULL);
      t_ciag[0] = pewien_ciag;
 
      // Ten ciąg jest  również częścią klasy abstrakcji ciągów o tej samej reszcie z dzielenia przez q.
@@ -54,6 +57,7 @@ zbior_ary ciag_arytmetyczny(int a, int q, int b){
      };
 
      sumowalne_ciagi* t_sum = (sumowalne_ciagi*) malloc (sizeof(sumowalne_ciagi)); // Tablica zawierająca tę klasę abstrakcji
+     assert(t_sum !=  NULL);
      t_sum[0] = pewien_sumowalny_ciag;
 
      //Ostatecznie tworzymy zbiór klas abstrakcji.
@@ -72,6 +76,7 @@ zbior_ary singleton(int a){
 // Zwraca pusty (o rozmiarze 0) zbiór zajmujący O('pamiec') jednostek pamięci.
 zbior_ary zbior_pusty(unsigned pamiec){
     sumowalne_ciagi* t_sum = (sumowalne_ciagi*) malloc (pamiec * sizeof(sumowalne_ciagi));
+    assert(t_sum != NULL);
     zbior_ary pusty={
         .t_sum = t_sum,
         .rozmiar = 0,
@@ -83,6 +88,7 @@ zbior_ary zbior_pusty(unsigned pamiec){
 // O reszcie z dzielenia przez Q 'reszta'
 sumowalne_ciagi pusty_sumowalny(unsigned pamiec, int reszta){
     ciag_ary* t_ciag = (ciag_ary*) malloc (pamiec * sizeof(ciag_ary));
+    assert(t_ciag != NULL);
     sumowalne_ciagi pusty ={
         .reszta = reszta,
         .t_ciag = t_ciag,
@@ -99,11 +105,13 @@ void przypisz_ciag(ciag_ary a, sumowalne_ciagi* A){
 }
 
 // Struktura, która przechowuje początki lub końce przedziałów.
+#pragma pack(push, 1)
 typedef struct punkt{
-    int wartosc; // Miejsce na osi liczbowej
+    int64_t wartosc; // Miejsce na osi liczbowej
     bool czy_A; // Rozróżnia dwa zbiory: A i B
     bool poczatek; // Rozróżnia, czy jest to początek ciągu, czy koniec
 } punkt;
+#pragma pack(pop)
 
 // Definiuje a > b
 bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
@@ -117,12 +125,12 @@ bool punkt_a_wiekszy_niz_b(punkt a, punkt b){
 
 // Przepisuje wszyskie punkty z A do 'punkt'ów 
 void przepisz_punkt(sumowalne_ciagi A, punkt** tab_A, bool czy_A){
-
+    
     for(unsigned i = 0 ; i < A.rozmiar ; ++i){
-        punkt poczatek = {A.t_ciag[i].poczatek, czy_A, true};
+        punkt poczatek = {(int64_t) A.t_ciag[i].poczatek, czy_A, true};
         (*tab_A)[2 * i] = poczatek;
         //wypisz_punkt(poczatek);
-        punkt koniec = {(int) ((int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc), czy_A, false};
+        punkt koniec = { (int64_t) A.t_ciag[i].koniec + (int64_t) Q.wartosc, czy_A, false};
         (*tab_A)[2 * i + 1] = koniec;
     }
 }
@@ -144,9 +152,11 @@ void posortuj(sumowalne_ciagi A, sumowalne_ciagi B, punkt** tab){
 
     //Przepisujemy A i B do tablic punktów
     punkt* tab_A = (punkt*) malloc (A.rozmiar * 2 * sizeof(punkt));//Działa
+    assert(tab_A != NULL);
     przepisz_punkt(A, &tab_A, /*Czy_A*/ true);
 
     punkt* tab_B = (punkt*) malloc (B.rozmiar * 2 * sizeof(punkt));
+    assert(tab_B != NULL);
     przepisz_punkt(B, &tab_B, /*Czy_A*/ false);
     
     int wsk_A = -1;
@@ -200,18 +210,20 @@ void znajdz_ciagi_po_punktach(
     // Gdy stan zmienia się z 1 na 0, to znaleźliśmy koniec ciągu, który należy dodać do wyniku.
     for(unsigned i = 0 ; i < n ; ++i){
         punkt p = sort_punkt[i];
-
         int poprzedni_stan = stan;
         stan += zmiana_stanu(p, czy_minus_B);
 
         if(poprzedni_stan == 0 && stan == 1){
-            poczatek = p.wartosc; // W tym momencie znaleźliśmy początek ciągu
+            poczatek = (int64_t) p.wartosc; // W tym momencie znaleźliśmy początek ciągu
             poczatek_ustalony = true;
         }
         else if(poprzedni_stan == 1 && stan == 0){
             assert(poczatek_ustalony); // Sprawdzamy, czy wcześniej ustalilismy początek
-            if(poczatek <= p.wartosc - Q.wartosc){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
-                ciag_ary ciag = {(int) poczatek, (int) (p.wartosc - (int64_t) Q.wartosc)}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
+            int64_t koniec = (int64_t) p.wartosc - (int64_t) Q.wartosc;
+            assert(koniec <= (int64_t) INT_MAX);
+            assert(koniec >= (int64_t) INT_MIN);
+            if(poczatek <= koniec){ // Jeśli ciąg jest prawidłowy - ważne przy iloczynie
+                ciag_ary ciag = {(int) poczatek, (int) (koniec)}; // Każdy koniec jest przedłużony o Q.wartosc, więc teraz trzeba to odjąć.
                 przypisz_ciag(ciag, &(*wynik));
             }
             poczatek_ustalony = false;
@@ -226,6 +238,7 @@ sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int pocza
 
     // Tablica, która będzie przechowywała posortowane początki i końce A i B
     punkt* sort_punkt = (punkt*) malloc (2 * (A.rozmiar + B.rozmiar) * sizeof(punkt));
+    assert(sort_punkt !=  NULL);
     posortuj(A, B, &sort_punkt); // O(Ary_q(A) + Ary_q(B)
 
     znajdz_ciagi_po_punktach(
@@ -238,7 +251,7 @@ sumowalne_ciagi polocz_sumowalne(sumowalne_ciagi A, sumowalne_ciagi B, int pocza
 
     free(sort_punkt);
 
-    ciag_ary* tmp = (ciag_ary*) realloc(wynik.t_ciag, wynik.rozmiar * sizeof (sumowalne_ciagi)); // Zwalniamy niepotrzebną pamięć
+    ciag_ary* tmp = (ciag_ary*) realloc(wynik.t_ciag, wynik.rozmiar * sizeof (ciag_ary)); // Zwalniamy niepotrzebną pamięć
     if(tmp != NULL)
         wynik.t_ciag = tmp;
 
