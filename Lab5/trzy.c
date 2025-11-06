@@ -107,6 +107,20 @@ int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
     return Min;
 }
 
+int maks_z_min(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
+
+    int lewy = motele[a.ind_pierwszego].odl_od_pocz;
+    int prawy = motele[c.ind_ostatniego].odl_od_pocz;
+
+    int Maks = 0;
+
+    for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
+        int srodek = motele[i].odl_od_pocz;
+        Maks = max(Maks, min(srodek - lewy, prawy - srodek));
+    }
+    return Maks;
+}
+
 int najblizsa(motel motele[], grupa_moteli grupy[], int ilosc_grup){
 
     int wynik = INT_MAX;
@@ -116,12 +130,58 @@ int najblizsa(motel motele[], grupa_moteli grupy[], int ilosc_grup){
     for(int i = 0 ; i + 2 < ilosc_grup ; ++i){
         wynik = min(wynik, min_z_maks(grupy[i], grupy[i + 1], grupy[i + 2], motele));
     }
-
     return wynik;
 }
 
-int najdalsza(int n, motel motele[], grupa_moteli grupy[], int ilosc_grup){
-    return motele[n - 1].odl_od_pocz + motele[grupy[ilosc_grup - 1].ind_pierwszego].odl_od_pocz;
+int znajdz_3_rozna_siec(grupa_moteli grupy[], int ilosc_grup, int zmiana, int pierwszy){
+    int siec_1 = grupy[pierwszy].nr_sieci;
+    int siec_2 = grupy[pierwszy + zmiana].nr_sieci;
+    int siec_3 = 0;
+    int ind_siec_3 = pierwszy + zmiana;
+    while(siec_3 == 0){
+        ind_siec_3 += zmiana;
+        assert(0 <= ind_siec_3 && ind_siec_3 < ilosc_grup);
+        nowa_siec(&siec_1, &siec_2, &siec_3, grupy[ind_siec_3].nr_sieci);
+    }
+    return siec_3;
+}
+
+int poszukaj_pomiedzy(const int ind_pocz, const int ind_kon, motel motele[], grupa_moteli grupy[]){
+
+    grupa_moteli a = grupy[ind_pocz];
+    grupa_moteli c = grupy[ind_kon];
+
+    if(a.nr_sieci == c.nr_sieci)
+        return 0;
+
+    int wynik = 0;
+
+    for(int i = ind_pocz + 1 ; i < ind_kon ; ++i){
+        grupa_moteli b = grupy[i];
+        if(a.nr_sieci != b.nr_sieci && c.nr_sieci != b.nr_sieci){
+            wynik = max(wynik, maks_z_min(a, b, c, motele));
+        }
+    }
+    return wynik;
+}
+
+int najdalsza(motel motele[], grupa_moteli grupy[], int ilosc_grup){
+
+    assert(ilosc_grup >= 3);
+
+    int ind_3_pocz = znajdz_3_rozna_siec(grupy, ilosc_grup, 1, 0);
+    int ind_3_kon = znajdz_3_rozna_siec(grupy, ilosc_grup, -1, ilosc_grup - 1);
+
+    const int pocz_ind[3] = {0, 1, ind_3_pocz};
+    const int kon_ind[3] = {ilosc_grup - 1, ilosc_grup - 2, ind_3_kon};
+
+    int wynik = 0;
+
+    for(int i = 0 ; i < 8 ; i++){
+        wynik = max(wynik, poszukaj_pomiedzy(pocz_ind[i % 3], kon_ind[i / 3], motele, grupy));
+    }
+
+    return wynik;
 }
 
 int main(){
@@ -136,9 +196,6 @@ int main(){
         return 0;
     }
 
-    //printf("Ilosc grup: %d\n", ilosc_grup);
-
-
-    printf("%d %d\n", najblizsa(motele, grupy, ilosc_grup), najdalsza(n, motele, grupy, ilosc_grup));
+    printf("%d %d\n", najblizsa(motele, grupy, ilosc_grup), najdalsza(motele, grupy, ilosc_grup));
     return 0;
 }
