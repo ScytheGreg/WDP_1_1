@@ -12,7 +12,6 @@ typedef struct motel{
 
 typedef struct grupa_moteli{
     int nr_sieci;
-    int rozmiar;
     int ind_pierwszego;
     int ind_ostatniego;
 } grupa_moteli;
@@ -59,10 +58,11 @@ bool pogrupuj_motele(int n, motel motele[], grupa_moteli* pogrupowane_motele[], 
         if(motele[i].nr_sieci != motele[i + 1].nr_sieci){
             grupa_moteli grupa = {
                 /*nr_sieci*/ motele[i].nr_sieci,
-                /*rozmiar*/ i - poczatek_grupy + 1,
                 /*ind_pierwszego*/ poczatek_grupy,
                 /*ind_ostatniego*/ i
             };
+            assert(0 <= poczatek_grupy && poczatek_grupy < n);
+            assert(0 <= i && i < n);
             assert(*ilosc_grup < n);
             (*pogrupowane_motele)[*ilosc_grup] = grupa;
             (*ilosc_grup)++;
@@ -99,7 +99,7 @@ int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
 
     int Min = INT_MAX;
 
-    for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
+    for(int i = b.ind_pierwszego ; i < b.ind_ostatniego ; ++i){
         int srodek = motele[i].odl_od_pocz;
         Min = min(Min, max(srodek - lewy, prawy - srodek));
         //printf("i: %d, Min: %d\n", i, Min);

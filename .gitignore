@@ -1,13 +1,11 @@
-# Ignoruj wszystko
-*
-
-# Ale nie katalogi (bo wtedy git nie zobaczy .gitignore)
-!*/
-
-# Nie ignoruj plików .c
-!*.c
-!*task.txt
-!.gitignore
-!*Makefile
-!*.h
-
+*.e
+*.in
+*test*
+*.o
+*.out
+*.patch
+*tmp*
+*opcje
+*/README
+*/LICENSE
+*.sh
