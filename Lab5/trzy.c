@@ -99,7 +99,7 @@ int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
 
     int Min = INT_MAX;
 
-    for(int i = b.ind_pierwszego ; i < b.ind_ostatniego ; ++i){
+    for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
         int srodek = motele[i].odl_od_pocz;
         Min = min(Min, max(srodek - lewy, prawy - srodek));
         //printf("i: %d, Min: %d\n", i, Min);
@@ -115,6 +115,7 @@ int maks_z_min(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]){
     int Maks = 0;
 
     for(int i = b.ind_pierwszego ; i <= b.ind_ostatniego ; ++i){
+        assert(&motele[i] != NULL);
         int srodek = motele[i].odl_od_pocz;
         Maks = max(Maks, min(srodek - lewy, prawy - srodek));
     }
@@ -143,10 +144,12 @@ int znajdz_3_rozna_siec(grupa_moteli grupy[], int ilosc_grup, int zmiana, int pi
         assert(0 <= ind_siec_3 && ind_siec_3 < ilosc_grup);
         nowa_siec(&siec_1, &siec_2, &siec_3, grupy[ind_siec_3].nr_sieci);
     }
-    return siec_3;
+    return ind_siec_3;
 }
 
 int poszukaj_pomiedzy(const int ind_pocz, const int ind_kon, motel motele[], grupa_moteli grupy[]){
+
+    //printf("Szukamy pomiędzy: %d, %d\n", ind_pocz, ind_kon);
 
     grupa_moteli a = grupy[ind_pocz];
     grupa_moteli c = grupy[ind_kon];
@@ -159,6 +162,8 @@ int poszukaj_pomiedzy(const int ind_pocz, const int ind_kon, motel motele[], gru
     for(int i = ind_pocz + 1 ; i < ind_kon ; ++i){
         grupa_moteli b = grupy[i];
         if(a.nr_sieci != b.nr_sieci && c.nr_sieci != b.nr_sieci){
+            //int _ = max(wynik, maks_z_min(a, b, c, motele));
+            //printf("To wyszło dla indeksu grupy %d: %d\n", i, _);
             wynik = max(wynik, maks_z_min(a, b, c, motele));
         }
     }
@@ -175,10 +180,14 @@ int najdalsza(motel motele[], grupa_moteli grupy[], int ilosc_grup){
     const int pocz_ind[3] = {0, 1, ind_3_pocz};
     const int kon_ind[3] = {ilosc_grup - 1, ilosc_grup - 2, ind_3_kon};
 
+    // printf("ind_3_pocz: %d\n", ind_3_pocz);
+    // printf("ind_3_kon: %d \n", ind_3_kon);
+
     int wynik = 0;
 
-    for(int i = 0 ; i < 8 ; i++){
+    for(int i = 0 ; i < 9 ; i++){
         wynik = max(wynik, poszukaj_pomiedzy(pocz_ind[i % 3], kon_ind[i / 3], motele, grupy));
+        //printf("Wynik po %d: %d\n", i, wynik);
     }
 
     return wynik;
