@@ -25,13 +25,13 @@ void wczytaj_dane(int* n, motel* motele[] ){
         printf("Nie wczytano n\n");
 
     *motele = (motel*) malloc (((unsigned)(*n)  + 1)* sizeof(motel));
-    assert(*motle != NULL);
+    assert(*motele != NULL);
 
     for(int i = 0 ; i < *n ; ++i){// Wczytaj kolejne motele
         motel wczytywany;
         if(scanf("%d %d", &wczytywany.nr_sieci, &wczytywany.odl_od_pocz) == 0)
             printf("Nie wczytano motelu nr %d\n", i);
-        (*motele)[i] = wczytaj;
+        (*motele)[i] = wczytywany;
     }
 }
 
