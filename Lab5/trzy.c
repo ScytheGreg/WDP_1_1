@@ -194,8 +194,10 @@ int najdalsza(motel motele[], grupa_moteli grupy[], int ilosc_grup){
 
     // Dla każdej możliwej pary 3 - 3 tych indeksów przeszukujemy wszystkie grupy.
     // Można udowodnić, że wśród nich jest szukane maksimum.
-    for(int i = 0 ; i < 9 ; i++){ 
-        wynik = max(wynik, poszukaj_pomiedzy(pocz_ind[i % 3], kon_ind[i / 3], motele, grupy));
+    for(int i = 0 ; i < 3 ; i++){ 
+        for(int j = 0 ; j < 3 ;++j){
+        wynik = max(wynik, poszukaj_pomiedzy(pocz_ind[i], kon_ind[j], motele, grupy));
+        }
     }
 
     return wynik;
