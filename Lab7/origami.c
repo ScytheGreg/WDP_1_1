@@ -59,7 +59,6 @@ void read_line(shape* figures[], int k){
 
 typedef void (*read_object)(shape**, int);
 
-
 void read_data(shape* figures[], int n){
     for(int i = 1 ; i <= n ; ++i){
         char object_type;
@@ -79,9 +78,34 @@ void read_data(shape* figures[], int n){
 
 }
 
-// int query(shape figure, double x, double y){
+int is_inside(shape* figure, double x, double y){
 
-// }
+}
+
+int proper_side(double x, double y, line our_line){
+
+}
+
+
+int rec(shape* figure, double x, double y, int l_ix){
+    if(l_ix < 0)
+        return(is_inside(figure, x, y));
+
+    line our_line = figure->lines[l_ix];
+    point p;
+    p = sym(x, y, our_line);
+    if(proper_side(x, y, our_line) == 1)
+        return rec(figure, x, y, l_ix - 1) + rec(figure, p.x, p.y, l_ix - 1);
+
+    else if(proper_side(x, y, our_line) == 0)
+        return(rec(figure, x, y, l_ix - 1));
+
+    return 0;// if proper_side(x, y, our_line) == -1
+}
+
+int query(shape* figure, double x, double y){
+    return rec(figure, x, y, figure->l_cnt);
+}
 
 void solve(){
     int n, q;
@@ -99,7 +123,7 @@ void solve(){
         if(scanf("%d %lf %lf", &k, &x, &y) != 3)
             input_error();
 
-        //printf("%d\n", query(figures[k], x, y));
+        printf("%d\n", rec(figures[k], x, y, figures[k]->l_cnt));
     }
 }
 
@@ -107,4 +131,3 @@ int main(){
     solve();
     return 0;
 }
-
