@@ -1,57 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "debug.h"
 
 const unsigned FIGURE_LIMIT = 1000;
 const unsigned LINE_LIMIT   = 22;
 
-typedef struct {double x1, y1, x2, y2;} rect;
-
-typedef struct {double x, y, r; } circ;
-
-typedef enum { RECTANGLE, CIRCLE } shape_type;
-
-typedef struct { double x1, y1, x2, y2; } line;
-
-typedef struct {
-    shape_type type;
-    union {
-        rect rectangle;
-        circ circle;
-    };
-    int l_cnt;
-    line lines[];
-} shape;
 
 void input_error(){
-    printf("Input eerror\n");
+    printf("Input error\n");
     exit(0);
 }
 
-shape init_shape(shape_type fig_type){
+shape* init_shape(shape_type fig_type){
+    printf("Init_shape\n");
     shape* figure = (shape*) malloc(sizeof(shape) + LINE_LIMIT * sizeof(line));
     assert(figure != NULL);
     figure -> type  = fig_type;
     figure -> l_cnt = 0;
-    return *figure;
+    printf("Init_shape_end\n");
+    return figure;
 }
 
 void read_circle(shape* figures[], int k){
+    printf("Read_circle\n");
     circ rc;
     if(scanf("%lf %lf %lf", &rc.x, &rc.y, &rc.r) != 3)
         input_error();
     
-    *figures[k] = init_shape(CIRCLE);
+    figures[k] = init_shape(CIRCLE);
     figures[k] -> circle = rc;
+    printf("Read_circle_end\n");
 }
 
 void read_rectangle(shape* figures[], int k){
+    printf("Read_rectangle\n");
     rect rr;
     if(scanf("%lf %lf %lf %lf", &rr.x1, &rr.y1, &rr.x2, &rr.y2) != 4)
         input_error();
 
-    *figures[k] = init_shape(RECTANGLE);
+    figures[k] = init_shape(RECTANGLE);
     figures[k] -> rectangle = rr;
+    printf("Read_rectangle_end\n");
 }
 
 void read_line(shape* figures[], int k){
@@ -63,6 +53,8 @@ void read_line(shape* figures[], int k){
     int cnt = figures[idx] -> l_cnt;
     figures[idx] -> lines[cnt] = rl;
     figures[idx] -> l_cnt ++;
+
+    print_shape(figures[idx]);
 }
 
 typedef void (*read_object)(shape**, int);
@@ -71,8 +63,9 @@ typedef void (*read_object)(shape**, int);
 void read_data(shape* figures[], int n){
     for(int i = 1 ; i <= n ; ++i){
         char object_type;
-        if(scanf("%c", &object_type) != 1)
+        if(scanf("\n%c", &object_type) != 1)
             input_error();
+        assert((object_type == 'P' || object_type == 'K') || object_type == 'Z');
 
         read_object read_func[256] = {NULL};
         read_func['P'] = read_rectangle;
@@ -81,9 +74,9 @@ void read_data(shape* figures[], int n){
 
         if(read_func[(unsigned char) object_type] == NULL)
             input_error();
-
         read_func[(unsigned char) object_type](figures, i);
     }
+
 }
 
 // int query(shape figure, double x, double y){
@@ -95,10 +88,10 @@ void solve(){
     if(scanf("%d %d", &n, &q) != 2)
         input_error();
 
-    shape* figures = (shape*) malloc((unsigned)(n + 1) * sizeof(shape));
+    shape** figures = (shape**) malloc((unsigned)(n + 1) * sizeof(shape));
     assert(figures != NULL);
 
-    read_data(&figures, n);
+    read_data(figures, n);
 
     for(int i = 0 ; i < q ; ++i){
         int k;
