@@ -4,7 +4,7 @@
 void print_shape(const shape* figure) {
     if (figure == NULL) {
         printf("NULL shape\n");
-        return;
+        return; 
     }
 
     switch (figure->type) {

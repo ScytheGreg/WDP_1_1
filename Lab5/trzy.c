@@ -1,6 +1,4 @@
-// Rozwiązanie zadania "Trzy różne" z Lab5. Autor: Grzegorz Kaczmarek. License:
-// MIT.
-
+//Rozwiązanie zadania trzy_rozne
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -114,42 +112,24 @@ int max(int a, int b) {
 }
 
 // Zwraca miniumum dla grupy b z maksimów odległości moteli z grupy b do a i c
-// odpowiednio. Wykorzystujemy w int najblizsza()
-int min_z_maks(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]) {
+// odpowiednio. Wykorzystujemy w int najblizsza(). To dla s = -1. Dla s = 1
+// odwrotnie i wykorzystujemy w najdalsza()
+int maks_min(int fir_ix, grupa_moteli b, int las_ix, motel motele[],
+             int the_worst, int s) {
 
-  if (a.nr_sieci == c.nr_sieci) // Jeśli motele nie spełniają warunków zadania.
-    return INT_MAX;
+  int lewy = motele[fir_ix].odl_od_pocz; // Optymalizujemy odległości do a i c
+  int prawy = motele[las_ix].odl_od_pocz;
 
-  int lewy = motele[a.ind_ostatniego]
-                 .odl_od_pocz; // Minimalizujemy odległości do a i c.
-  int prawy = motele[c.ind_pierwszego].odl_od_pocz;
-
-  int Min = INT_MAX;
-
+  int wynik = the_worst;
   for (int i = b.ind_pierwszego; i <= b.ind_ostatniego;
-       ++i) { // Pętla po wszystkich indeksach grupy b
+       ++i) { // Pętla po wszystkich z grupy b
     int srodek = motele[i].odl_od_pocz;
-    Min = min(Min, max(srodek - lewy, prawy - srodek));
+    wynik =
+        s * max(s * wynik,
+                min(s * (srodek - lewy),
+                    s * (prawy - srodek))); // dla s = -1 to będzie min z maks
   }
-  return Min;
-}
-
-// Zwraca maksimum dla grupy b z minimów odległości moteli z grupy b do a i c
-// odpowiednio.
-int maks_z_min(grupa_moteli a, grupa_moteli b, grupa_moteli c, motel motele[]) {
-
-  int lewy = motele[a.ind_pierwszego]
-                 .odl_od_pocz; // Maksymalizujemy odległości do a i c.
-  int prawy = motele[c.ind_ostatniego].odl_od_pocz;
-
-  int Maks = 0;
-
-  for (int i = b.ind_pierwszego; i <= b.ind_ostatniego;
-       ++i) { // Pętla po wszystkich ideksach b.
-    int srodek = motele[i].odl_od_pocz;
-    Maks = max(Maks, min(srodek - lewy, prawy - srodek));
-  }
-  return Maks;
+  return wynik;
 }
 
 // Zwraca odległość najbliższej trójki
@@ -160,8 +140,11 @@ int najblizsza(motel motele[], grupa_moteli grupy[], int ilosc_grup) {
   // Jeżeli istnieją trzy grupy o parami różnych sieciach, to będą istiały trzy
   // kolejne grupy o parami różnych sieciach ,wśród których jest miniumum.
   for (int i = 0; i + 2 < ilosc_grup; ++i) {
-    wynik =
-        min(wynik, min_z_maks(grupy[i], grupy[i + 1], grupy[i + 2], motele));
+    if (grupy[i].nr_sieci != grupy[i + 2].nr_sieci) {
+      wynik = min(wynik,
+                  maks_min(grupy[i].ind_ostatniego, grupy[i + 1],
+                           grupy[i + 2].ind_pierwszego, motele, INT_MAX, -1));
+    }
   }
   return wynik;
 }
@@ -202,8 +185,8 @@ int poszukaj_pomiedzy(const int ind_pocz, const int ind_kon, motel motele[],
     if (a.nr_sieci != b.nr_sieci &&
         c.nr_sieci !=
             b.nr_sieci) { // Sprawdzamy, czy grupa spełnia warunek zadania.
-      wynik = max(wynik,
-                  maks_z_min(a, b, c, motele)); // Aktualizujemy wynik (maks).
+      wynik = max(wynik, maks_min(a.ind_pierwszego, b, c.ind_ostatniego, motele,
+                                  0, 1)); // Aktualizujemy wynik (maks).
     }
   }
   return wynik;
