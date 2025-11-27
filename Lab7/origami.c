@@ -9,22 +9,23 @@ const unsigned LINE_LIMIT = 22;
 const double ZERO = 1e-6; // Accepted calculation accuracy
 
 typedef struct {
-  double x1, y1, x2, y2;
+  double x, y;
+} point;
+
+typedef struct {
+  point p1, p2;
 } rect; // Rectangle
 
 typedef struct {
-  double x, y, r;
-} circ; // Circle
+  point p;  // Center
+  double r; // Radius
+} circ;     // Circle
 
 typedef enum { RECTANGLE, CIRCLE } shape_type;
 
 typedef struct {
-  double x1, y1, x2, y2;
+  point p1, p2;
 } line;
-
-typedef struct {
-  double x, y;
-} point;
 
 typedef struct {
   shape_type type;
@@ -58,7 +59,7 @@ shape *init_shape(shape_type fig_type, shape *prev_fig) {
 // Reads a circle data, creates a sheet
 void read_circle(shape *figures[], int k) {
   circ rc;
-  if (scanf("%lf %lf %lf", &rc.x, &rc.y, &rc.r) != 3)
+  if (scanf("%lf %lf %lf", &rc.p.x, &rc.p.y, &rc.r) != 3)
     input_error();
 
   figures[k] = init_shape(CIRCLE, NULL);
@@ -68,7 +69,7 @@ void read_circle(shape *figures[], int k) {
 // Reads a rectangle data, creates a sheet
 void read_rectangle(shape *figures[], int k) {
   rect rr;
-  if (scanf("%lf %lf %lf %lf", &rr.x1, &rr.y1, &rr.x2, &rr.y2) != 4)
+  if (scanf("%lf %lf %lf %lf", &rr.p1.x, &rr.p1.y, &rr.p2.x, &rr.p2.y) != 4)
     input_error();
 
   figures[k] = init_shape(RECTANGLE, NULL);
@@ -79,7 +80,8 @@ void read_rectangle(shape *figures[], int k) {
 void read_line(shape *figures[], int k) {
   line rl;
   int idx;
-  if (scanf("%d %lf %lf %lf %lf", &idx, &rl.x1, &rl.y1, &rl.x2, &rl.y2) != 5)
+  if (scanf("%d %lf %lf %lf %lf", &idx, &rl.p1.x, &rl.p1.y, &rl.p2.x,
+            &rl.p2.y) != 5)
     input_error();
   assert(1 <= idx && idx < k);
   shape *prev_fig = figures[idx];                    // Get dependent figure
@@ -120,17 +122,17 @@ double dist(point A, point B) {
 int is_inside(shape *figure, double x, double y) {
   if (figure->type == CIRCLE) {
     circ fc = figure->circle;
-    return dist((point){x, y}, (point){fc.x, fc.y}) <= fc.r * fc.r + ZERO;
+    return dist((point){x, y}, (point){fc.p.x, fc.p.y}) <= fc.r * fc.r + ZERO;
   }
   rect fr = figure->rectangle;
-  return (fr.x1 <= x + ZERO && x <= fr.x2 + ZERO && fr.y1 <= y + ZERO &&
-          y <= fr.y2 + ZERO);
+  return (fr.p1.x <= x + ZERO && x <= fr.p2.x + ZERO && fr.p1.y <= y + ZERO &&
+          y <= fr.p2.y + ZERO);
 }
 
 // Return reflected point to P by line L
 point reflect(point P, line L) {
-  double dx = L.x2 - L.x1, dy = L.y2 - L.y1, a = dy, b = -dx,
-         c = dx * L.y1 - dy * L.x1;
+  double dx = L.p2.x - L.p1.x, dy = L.p2.y - L.p1.y, a = dy, b = -dx,
+         c = dx * L.p1.y - dy * L.p1.x;
   double d = (a * P.x + b * P.y + c) / (a * a + b * b);
   return (point){P.x - 2 * a * d, P.y - 2 * b * d};
 }
@@ -139,7 +141,7 @@ point reflect(point P, line L) {
 // on the line (0)
 int proper_side(point P, line L) {
   double cross_product =
-      (L.x2 - L.x1) * (P.y - L.y1) - (L.y2 - L.y1) * (P.x - L.x1);
+      (L.p2.x - L.p1.x) * (P.y - L.p1.y) - (L.p2.y - L.p1.y) * (P.x - L.p1.x);
 
   if (cross_product > ZERO)
     return 1; // Right side
