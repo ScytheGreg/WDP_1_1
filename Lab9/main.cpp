@@ -41,7 +41,6 @@ int main(){
 
     assert(w_ktorym_worku(przedmioty[0]) == 0);
     assert(w_ktorym_worku(worki[0]) == -1);
-    cout << ile_przedmiotow(worki[0]) << "\n";
     assert(ile_przedmiotow(worki[0]) == n);
     
     for (int i = 1; i < n; ++i){

@@ -1,112 +1,130 @@
 #include <iostream>
-#include <vector>
+#include <forward_list>
 #include "worki.h"
 
 using namespace std;
 int bag_cnt = -1;
-worek* desk;
-std::vector<przedmiot*> obj_ptrs;
-std::vector<worek*> bag_ptrs;
+bool INIT = false;
+worek* Tree; // Christmas tree
+Elf* Santa; // Santa is an Elf for the Christmas tree
+forward_list<worek*> bag_ptrs;
+forward_list<przedmiot*> pres_ptrs;
+
 
 void malloc_error(){
-    std::cout << "Malloc error!\n";
+    std::cout << "Malloc error!\nYour presents delivery unsucceed :(\n";
 }
 
-void is_desk_init(){
-    if(bag_cnt == -1)
-        desk = nowy_worek(-1);
-}
-
-// Nowy przedmiot na biurku
-przedmiot *nowy_przedmiot(){
-    cout << "Stworz przedmiot!\n";
-    is_desk_init();
-    przedmiot* obj = (przedmiot*) malloc(sizeof(przedmiot));
-    if(obj == nullptr)
+template<typename T>
+T* allocate(){
+    T* ptr = (T*) malloc(sizeof(T));
+    if(!ptr)
         malloc_error();
-    obj -> bag = desk;
-    desk -> obj_cnt ++;
-    obj_ptrs.push_back(obj);
-    return obj;
+    return ptr;
 }
 
-worek *nowy_worek(int nr){
-    cout << "Stworz worek nr " << nr << "\n";
-    worek* bag = (worek*) malloc(sizeof(worek));
-    if(bag == nullptr)
-        malloc_error();
+
+Elf *new_elf(worek* bag){
+    Elf* elf = allocate<Elf>();
+    elf -> bag = bag;
+    elf -> pres_cnt = 0;
+    return elf;
+}
+
+worek *new_bag(int nr){
+    worek* bag = allocate<worek>();
+    bag -> origin = new_elf(bag);
     bag -> nr = nr;
-    bag -> bag = desk;
-    bag -> obj_cnt = 0;
-    bag_ptrs.push_back(bag);
+    bag -> elf = Santa;
+    bag_ptrs.push_front(bag);
     return bag;
 }
-// Nowy worek na biurku; otrzymuje kolejny numer, począwszy od 0.
+
+void init(){
+    Tree = new_bag(bag_cnt++);
+    Santa = Tree -> origin;
+    INIT = true;
+}
+
+// New present under Christmas Tree!
+przedmiot *nowy_przedmiot(){
+    if(!INIT) init();
+    przedmiot* pres = allocate<przedmiot>();
+    pres -> elf = Santa;
+    Tree -> origin -> pres_cnt ++;
+    pres_ptrs.push_front(pres);
+    return pres;
+}
+
+// New bag under Christmas Tree! 
 worek *nowy_worek(){
-    is_desk_init();
-    return nowy_worek(++bag_cnt);
+    return new_bag(bag_cnt++);
 }
 
 // Wkłada przedmiot co do worka gdzie.
 // Założenie: co i gdzie leżą na biurku.
 void wloz(przedmiot *co, worek *gdzie){
-    co -> bag = gdzie;
-    gdzie -> obj_cnt ++;
+    co -> elf = gdzie -> origin;
+    gdzie -> origin -> pres_cnt += 1;
 }
 
 // Wkłada worek co do worka gdzie.
 // Założenie: co i gdzie leżą na biurku.
 void wloz(worek *co, worek *gdzie){
-    co -> bag = gdzie;
-    gdzie -> obj_cnt += co -> obj_cnt;
+    co -> elf = gdzie -> origin;
+    gdzie -> origin -> pres_cnt += co -> origin -> pres_cnt;
 }
 
 // Wyjmuje przedmiot p z worka i kładzie na biurku.
 // Założenie: Przedmiot p był w worku leżącym na biurku.
 void wyjmij(przedmiot *p){
-    p -> bag -> obj_cnt --;
-    p -> bag = desk;
+    p -> elf -> pres_cnt -= 1;
+    p -> elf = Santa;
 }
 
 // Wyjmuje worek w z worka i kładzie na biurku.
 // Założenie: Worek w był w worku leżącym na biurku.
 void wyjmij(worek *w){
-    w -> bag -> obj_cnt -= w -> obj_cnt;
-    w -> bag = desk;
+    w -> elf -> pres_cnt -= w -> origin -> pres_cnt;
+    w -> elf = Santa;
 }
 
 // Wynik: numer worka, w którym znajduje się przedmiot p (-1 jeśli na biurku).
 int w_ktorym_worku(przedmiot *p){
-    return p -> bag -> nr;
+    return p -> elf -> bag -> nr;
 }
 
 // Wynik: numer worka, w którym znajduje się worek w (-1 jeśli na biurku).
 int w_ktorym_worku(worek *w){
-    return w -> bag -> nr;
+    return w -> elf -> bag -> nr;
 }
 
 // Wynik: liczba przedmiotów zawartych (bezpośrednio i pośrednio) w worku w
 int ile_przedmiotow(worek *w){
-    return w -> obj_cnt;
+    return w -> origin -> pres_cnt;
 }
 
 // Cała zawartość worka w ląduje na biurku, a wszystko, co poza workiem w
 // znajdowało się bezpośrednio na biurku, ląduje wewnątrz worka w.
 void na_odwrot(worek *w){
-    int all_obj = desk -> obj_cnt;
-    std::swap(desk -> nr, w -> nr);
-    desk -> obj_cnt = all_obj - w -> obj_cnt;
-    w -> obj_cnt = all_obj;
-    desk -> bag = w;
-    w -> bag = w;
-    desk = w;
+    int all_pres = Santa -> pres_cnt;
+    Santa -> pres_cnt = all_pres - w -> origin -> pres_cnt;
+    w -> origin -> pres_cnt = all_pres;
+    swap(Santa -> bag, w -> origin -> bag);
+    Santa = w -> origin;
+    swap(Tree -> origin, w -> origin);
+    w -> elf = Santa;
 }
 
 // Kończy i zwalnia pamięć
 void gotowe(){
-    for(przedmiot* obj : obj_ptrs)
-        free(obj);
-    for(worek* bag : bag_ptrs){
-        free(bag);
+    while(!bag_ptrs.empty()){
+        free(bag_ptrs.front() -> origin);
+        free(bag_ptrs.front());
+        bag_ptrs.pop_front();
+    }
+    while(!pres_ptrs.empty()){
+        free(pres_ptrs.front());
+        pres_ptrs.pop_front();
     }
 }

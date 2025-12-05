@@ -1,15 +1,20 @@
 #ifndef WORKI_H
 #define WORKI_H
 
-// Należy wypełnić
+struct Elf;
 struct worek {
     int nr;
-    int obj_cnt;
+    Elf* origin;
+    Elf* elf;
+};
+
+struct Elf {
+    int pres_cnt;
     worek* bag;
 };
-// Należy wypełnić
+
 struct przedmiot {
-    worek* bag;
+    Elf* elf;
 };
 
 
