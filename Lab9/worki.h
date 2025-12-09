@@ -2,62 +2,54 @@
 #define WORKI_H
 
 struct Elf;
-struct worek {
-    int nr;
-    Elf* origin;
-    Elf* elf;
+struct worek { // A bag full of presents
+  int nr;
+  Elf *origin;
+  Elf *elf;
 };
 
+// Elf is a agent between presents and bags
 struct Elf {
-    int pres_cnt;
-    worek* bag;
+  int pres_cnt;
+  worek *bag;
 };
 
+// We call it a present. Every presents indicates for an Elf
 struct przedmiot {
-    Elf* elf;
+  Elf *elf;
 };
 
-
-// Nowy przedmiot na biurku
+// New present!
 przedmiot *nowy_przedmiot();
 
-// Nowy worek na biurku; otrzymuje kolejny numer, począwszy od 0.
+// New bag!
 worek *nowy_worek();
 
-worek *nowy_worek(int nr);
-
-void is_desk_init();
-
-// Wkłada przedmiot co do worka gdzie.
-// Założenie: co i gdzie leżą na biurku.
+// Insert a present to a bag
 void wloz(przedmiot *co, worek *gdzie);
 
-// Wkłada worek co do worka gdzie.
-// Założenie: co i gdzie leżą na biurku.
+// Inserts a bag to another bag.
 void wloz(worek *co, worek *gdzie);
 
-// Wyjmuje przedmiot p z worka i kładzie na biurku.
-// Założenie: Przedmiot p był w worku leżącym na biurku.
+// Pulls a presents from bag lying under Christmas Tree
 void wyjmij(przedmiot *p);
 
-// Wyjmuje worek w z worka i kładzie na biurku.
-// Założenie: Worek w był w worku leżącym na biurku.
+// Pulls a bag from another bag lying under Christmas Tree
 void wyjmij(worek *w);
 
-// Wynik: numer worka, w którym znajduje się przedmiot p (-1 jeśli na biurku).
+// Returns number of bag in which lie a present
 int w_ktorym_worku(przedmiot *p);
 
-// Wynik: numer worka, w którym znajduje się worek w (-1 jeśli na biurku).
+// Returns number of bag in which lie a bag
 int w_ktorym_worku(worek *w);
 
-// Wynik: liczba przedmiotów zawartych (bezpośrednio i pośrednio) w worku w
+// Returns number of presents inside a bag
 int ile_przedmiotow(worek *w);
 
-// Cała zawartość worka w ląduje na biurku, a wszystko, co poza workiem w
-// znajdowało się bezpośrednio na biurku, ląduje wewnątrz worka w.
+// Unpack the bag and pack everything else to that bag.
 void na_odwrot(worek *w);
 
-// Kończy i zwalnia pamięć
+// Clean
 void gotowe();
 
 #endif
