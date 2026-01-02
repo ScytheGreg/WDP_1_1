@@ -12,7 +12,7 @@ forward_list<worek *>
 forward_list<przedmiot *> pres_ptrs;
 
 void malloc_error() {
-  std::cout << "Malloc error!\nYour presents delivery failed :(\n";
+  std::cerr << "Malloc error!\nYour presents delivery failed :(\n";
 }
 
 // Allocates memory.
