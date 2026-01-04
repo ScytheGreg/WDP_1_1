@@ -13,7 +13,7 @@ all: $(TARGET)
 
 # Linkowanie WSZYSTKICH plików obiektowych
 $(TARGET): $(OBJ_C)
-	g++ $(OBJ_C) -o $(TARGET) $(SANITIZER_FLAGS)
+	g++ -g -O0 $(OBJ_C) -o $(TARGET) $(SANITIZER_FLAGS)
 
 clean:
 	rm -f *.e *.o

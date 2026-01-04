@@ -11,8 +11,7 @@
 -Wnull-dereference
 -Werror
 -fstack-protector-strong
--fsanitize=undefined
--fno-sanitize-recover
 -g
 -fno-omit-frame-pointer
--O1
+-O0
+-fmax-errors=1
