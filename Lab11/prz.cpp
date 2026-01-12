@@ -74,7 +74,7 @@ void set_del(ll y, multiset<ll> &set) {
   set.erase(it);
 }
 
-// Adds interval to result queue. If ivl cand has the same and as prev, prefers
+// Adds interval to result queue. If ivl cand has the same end as prev, prefers
 // prev.
 void add_ivl(ivl cand, ivl &prev, priority_queue<ivl> &res) {
   assert(cand.beg <= cand.end);
