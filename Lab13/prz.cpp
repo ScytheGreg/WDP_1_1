@@ -127,8 +127,10 @@ vector<stage> all_possible_nexts(const params &p, stage curr) {
     res.push_back(modify_stage(p, curr, {full}));  // Pour in
     if (curr.lvl[i] != 0) {                        // If there's some water
       for (int j = 0; j < p.n; ++j) { // Pour from current to all other
-        auto mods = pour_glass_to_glass(p, curr, i, j);
-        res.push_back(modify_stage(p, curr, mods));
+        if (i != j) {
+          auto mods = pour_glass_to_glass(p, curr, i, j);
+          res.push_back(modify_stage(p, curr, mods));
+        }
       }
     }
   }

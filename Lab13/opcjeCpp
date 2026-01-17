@@ -11,7 +11,5 @@
 -Wnull-dereference
 -Werror
 -fstack-protector-strong
--g
 -fno-omit-frame-pointer
--O0
 -fmax-errors=1
