@@ -17,8 +17,9 @@ struct stage {
 struct params {
   int n;
   vector<int> cap; // Capacities
-  stage end;       // Configuration at the end
-  stage start;     // Start configuraion
+  int cap_gcd;
+  stage end;   // Configuration at the end
+  stage start; // Start configuraion
 };
 
 struct modifier {
@@ -60,6 +61,15 @@ void full_emp_cnt(params &p) {
   p.start.emp_cnt = p.n;
 }
 
+int calc_gcd(const vector<int> &cap) {
+  assert(cap.size() != 0);
+  int gcd = cap[0];
+  for (int i = 1; i < (int)cap.size(); ++i) {
+    gcd = __gcd(gcd, cap[i]);
+  }
+  return gcd;
+}
+
 void init_data(params &p) {
   X_pow[0] = 1;
   for (int i = 1; i <= p.n; ++i) { // Calculate powers of X
@@ -68,6 +78,22 @@ void init_data(params &p) {
   p.end.hash = calc_hash(p.end.lvl);
   p.start.hash = calc_hash(p.start.lvl);
   full_emp_cnt(p);
+  p.cap_gcd = calc_gcd(p.cap);
+}
+
+bool check_if_reachable(const params &p, stage end) {
+  bool reachable = true;
+  if (end.emp_cnt + end.fll_cnt == 0)
+    reachable = false;
+  for (int i = 0; i < p.n; ++i) {
+    if (end.lvl[i] > p.cap[i])
+      reachable = false;
+    if (p.cap_gcd != 0) {
+      if (end.lvl[i] % p.cap_gcd != 0)
+        reachable = false;
+    }
+  }
+  return reachable;
 }
 
 void update_fll_empt_cnt(const params &p, stage &res, modifier mod) {
@@ -165,7 +191,10 @@ void solve() {
   params p;
   read_data(p);
   init_data(p);
-
+  if (!check_if_reachable(p, p.end)) {
+    cout << -1 << '\n';
+    return;
+  }
   cout << bfs(p, p.start, p.end) << '\n';
 }
 
