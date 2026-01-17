@@ -129,6 +129,7 @@ stage modify_stage(const params &p, const stage &father,
     update_fll_empt_cnt(p, res, mod);
     res.lvl[mod.idx] = mod.value;
   }
+  res.move_cnt++; // Update move counter
   return res;
 }
 
@@ -240,8 +241,7 @@ void bfs_step(bfs_params &bp, const params &p) {
        bp.all_possible_nexts(p, curr)) { // Look for all possible moves
     if (bp.vis.count(next.hash) == 0 &&
         next.fll_emp_sum() >
-            0) { // Make sure it's not visited and have an full or empty glass
-      next.move_cnt++;                      // Update move counter
+            0) { // Make sure it's not visited and have an full or empty glass                 
       if (next.hash == bp.get_end_hash()) { // Check the end condition
         bp.result = next.move_cnt;
       }
