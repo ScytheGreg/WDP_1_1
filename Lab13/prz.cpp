@@ -177,7 +177,8 @@ void add_moves_from_empty(const params &p, const stage &curr,
   }
   for (int j = 0; j < p.n; ++j) { // Pour from any glass to that one
     if (i != j) {                 // (Reveresed case of glass to glass)
-      for (int lvl = curr.lvl[j]; lvl > 0; lvl -= p.cap_gcd) {
+      int max_lvl = min(curr.lvl[j], p.cap[i]);
+      for (int lvl = max_lvl; lvl > 0; lvl -= p.cap_gcd) {
         modifier to = {.idx = i, .value = lvl};
         modifier from = {.idx = j, .value = curr.lvl[j] - lvl};
         res.push_back(modify_stage(p, curr, {to, from}));
@@ -193,7 +194,7 @@ void add_moves_from_full(const params &p, const stage &curr, vector<stage> &res,
     res.push_back(modify_stage(p, curr, {pour_out}));
   }
   for (int j = 0; j < p.n; ++j) {
-    int max_lvl = p.cap[j] - curr.lvl[j];
+    int max_lvl = min(p.cap[j] - curr.lvl[j], p.cap[i]);
     for (int lvl = max_lvl; lvl > 0; lvl -= p.cap_gcd) {
       modifier from = {.idx = i, .value = p.cap[i] - lvl};
       modifier to = {.idx = j, .value = curr.lvl[j] + lvl};
