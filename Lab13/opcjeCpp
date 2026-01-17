@@ -13,4 +13,6 @@
 -fstack-protector-strong
 -fno-omit-frame-pointer
 -fmax-errors=1
+-g
+-O0
 

@@ -12,6 +12,7 @@ struct stage {
   int fll_cnt = 0; // Full glasses cnt
   long long hash;
   vector<int> lvl; //  Water levels
+  int fll_emp_sum() { return emp_cnt + fll_cnt; }
 };
 
 struct params {
@@ -42,13 +43,18 @@ void read_data(params &p) {
     cerr << "Data too big!";
     exit(0);
   }
+  int zeros = 0;
   for (int i = 0; i < p.n; ++i) {
     int c, e;
     cin >> c >> e;
-    p.cap.push_back(c);
-    p.end.lvl.push_back(e);
-    p.start.lvl.push_back(0);
+    if (c != 0) {
+      p.cap.push_back(c);
+      p.end.lvl.push_back(e);
+      p.start.lvl.push_back(0);
+    } else
+      zeros++;
   }
+  p.n -= zeros;
 }
 
 void full_emp_cnt(params &p) {
@@ -83,7 +89,7 @@ void init_data(params &p) {
 
 bool check_if_reachable(const params &p, stage end) {
   bool reachable = true;
-  if (end.emp_cnt + end.fll_cnt == 0)
+  if (end.fll_emp_sum() == 0)
     reachable = false;
   for (int i = 0; i < p.n; ++i) {
     if (end.lvl[i] > p.cap[i])
@@ -143,9 +149,8 @@ vector<modifier> pour_glass_to_glass(const params &p, const stage &curr, int i,
   return {from, to};
 }
 
-vector<stage> all_possible_nexts(const params &p, stage curr) {
+vector<stage> all_possible_nexts(const params &p, const stage &curr) {
   vector<stage> res;
-  stage nex;
   for (int i = 0; i < p.n; ++i) {
     modifier empty = {.idx = i, .value = 0};
     modifier full = {.idx = i, .value = p.cap[i]};
@@ -163,39 +168,116 @@ vector<stage> all_possible_nexts(const params &p, stage curr) {
   return res;
 }
 
-int bfs(params &p, const stage &start, const stage &end) {
-  if (start.hash == end.hash)
-    return 0;
-  std::unordered_set<long long> vis; // Visited set - keeps hashes of stages
-  std::queue<stage> next_stgs;       // Bfs queue - that one might be big
-  vis.insert(start.hash);            // Mark start as visited
-  next_stgs.push(start);             // Add start to queue
-  while (!next_stgs.empty()) {       // As long as move is possible
-    stage curr = next_stgs.front();  // Current vertex
-    next_stgs.pop();                 // Remove from queue
-    for (stage next :
-         all_possible_nexts(p, curr)) { // Look for all possible moves
-      if (vis.count(next.hash) == 0) {  // Make sure it's not visited
-        next.move_cnt++;                // Update move counter
-        if (next.hash == end.hash)      // Check the end condition
-          return next.move_cnt;
-        vis.insert(next.hash); // Mark as visited
-        next_stgs.push(next);  // Push to bfs queue
+void add_moves_from_empty(const params &p, const stage &curr,
+                          vector<stage> &res, int i) {
+  for (int lvl = p.cap_gcd; lvl <= p.cap[i];
+       lvl += p.cap_gcd) {                       // Pour to that glass
+    modifier pour_in = {.idx = i, .value = lvl}; //(Reversed pouring out)
+    res.push_back(modify_stage(p, curr, {pour_in}));
+  }
+  for (int j = 0; j < p.n; ++j) { // Pour from any glass to that one
+    if (i != j) {                 // (Reveresed case of glass to glass)
+      for (int lvl = curr.lvl[j]; lvl > 0; lvl -= p.cap_gcd) {
+        modifier to = {.idx = i, .value = lvl};
+        modifier from = {.idx = j, .value = curr.lvl[j] - lvl};
+        res.push_back(modify_stage(p, curr, {to, from}));
       }
     }
   }
-  return -1;
+}
+
+void add_moves_from_full(const params &p, const stage &curr, vector<stage> &res,
+                         int i) {
+  for (int lvl = p.cap[i]; lvl > 0; lvl -= p.cap_gcd) {
+    modifier pour_out = {.idx = i, .value = p.cap[i] - lvl};
+    res.push_back(modify_stage(p, curr, {pour_out}));
+  }
+  for (int j = 0; j < p.n; ++j) {
+    int max_lvl = p.cap[j] - curr.lvl[j];
+    for (int lvl = max_lvl; lvl > 0; lvl -= p.cap_gcd) {
+      modifier from = {.idx = i, .value = p.cap[i] - lvl};
+      modifier to = {.idx = j, .value = curr.lvl[j] + lvl};
+      res.push_back(modify_stage(p, curr, {from, to}));
+    }
+  }
+}
+
+vector<stage> all_possible_prevs(const params &p, const stage &curr) {
+  vector<stage> res;
+  for (int i = 0; i < p.n; ++i) {
+    if (curr.lvl[i] == 0) {
+      add_moves_from_empty(p, curr, res, i);
+    }
+    if (curr.lvl[i] == p.cap[i]) {
+      add_moves_from_full(p, curr, res, i);
+    }
+  }
+  return res;
+}
+
+using nexts_func = function<vector<stage>(const params &, const stage &)>;
+
+class bfs_params {
+  long long end_hash;
+
+public:
+  std::unordered_set<long long> vis; // Visited set - keeps hashes of stages
+  std::queue<stage> next_stgs;       // Bfs queue - that one might be big
+  nexts_func all_possible_nexts;
+  int result = -1;
+  bfs_params(long long hash, nexts_func possible_nexts) {
+    this->end_hash = hash;
+    this->all_possible_nexts = possible_nexts;
+  }
+  long long get_end_hash() { return end_hash; }
+};
+
+void bfs_step(bfs_params &bp, const params &p) {
+  stage curr = bp.next_stgs.front(); // Current vertex
+  bp.next_stgs.pop();                // Remove from queue
+  for (stage next :
+       bp.all_possible_nexts(p, curr)) { // Look for all possible moves
+    if (bp.vis.count(next.hash) == 0 &&
+        next.fll_emp_sum() >
+            0) { // Make sure it's not visited and have an full or empty glass
+      next.move_cnt++;                      // Update move counter
+      if (next.hash == bp.get_end_hash()) { // Check the end condition
+        bp.result = next.move_cnt;
+      }
+      bp.vis.insert(next.hash); // Mark as visited
+      bp.next_stgs.push(next);  // Push to bfs queue
+    }
+  }
+}
+
+int bfs(params &p, const stage &start, const stage &end,
+        nexts_func possible_nexts) {
+  if (start.hash == end.hash)
+    return 0;
+  bfs_params bp(end.hash, possible_nexts);
+  bp.vis.insert(start.hash); // Mark start as visited
+  bp.next_stgs.push(start);  // Add start to queue
+  while (!bp.next_stgs.empty() &&
+         bp.result == -1) { // As long as move is possible
+    bfs_step(bp, p);
+  }
+  return bp.result;
 }
 
 void solve() {
   params p;
   read_data(p);
+  if (p.n == 0) {
+    cout << 0 << '\n';
+    return;
+  }
   init_data(p);
   if (!check_if_reachable(p, p.end)) {
     cout << -1 << '\n';
     return;
   }
-  cout << bfs(p, p.start, p.end) << '\n';
+  // cout << bfs(p, p.start, p.end, all_possible_nexts) << '\n';
+  cout << bfs(p, p.end, p.start, all_possible_prevs) << '\n';
 }
 
 int main() {
