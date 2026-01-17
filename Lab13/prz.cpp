@@ -227,9 +227,12 @@ public:
   std::queue<stage> next_stgs;       // Bfs queue - that one might be big
   nexts_func all_possible_nexts;
   int result = -1;
-  bfs_params(long long hash, nexts_func possible_nexts) {
+  // Constructor
+  bfs_params(long long hash = 0, nexts_func possible_nexts, stage start) {
     this->end_hash = hash;
     this->all_possible_nexts = possible_nexts;
+    this->vis.insert(start.hash);
+    this->next_stgs.push(start);
   }
   long long get_end_hash() { return end_hash; }
 };
@@ -255,14 +258,18 @@ int bfs(params &p, const stage &start, const stage &end,
         nexts_func possible_nexts) {
   if (start.hash == end.hash)
     return 0;
-  bfs_params bp(end.hash, possible_nexts);
-  bp.vis.insert(start.hash); // Mark start as visited
-  bp.next_stgs.push(start);  // Add start to queue
+  bfs_params bp(end.hash, possible_nexts, start);
   while (!bp.next_stgs.empty() &&
          bp.result == -1) { // As long as move is possible
     bfs_step(bp, p);
   }
   return bp.result;
+}
+
+void mit_in_the_middle(const params& p){
+    bfs_params fore(p.end.hash, all_possible_nexts, p.start);
+    bfs_params back(p.start.hash, all_possible_prevs, p.end);
+    
 }
 
 void solve() {
